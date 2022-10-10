@@ -1,0 +1,32 @@
+import Helper from "../helper/Helper";
+export default class Chats extends Helper {
+    private Redis;
+    getChat(req: any, res: any): Promise<void>;
+    getList(req: any, res: any): Promise<void>;
+    getGroupMetaData(req: any, res: any): Promise<void>;
+    send(req: any, res: any): Promise<void>;
+    readChat(req: any, res: any): Promise<void>;
+    unreadChat(req: any, res: any): Promise<void>;
+    archiveChat(req: any, res: any): Promise<void>;
+    unarchiveChat(req: any, res: any): Promise<void>;
+    muteChat(req: any, res: any): Promise<void>;
+    unmuteChat(req: any, res: any): Promise<void>;
+    pinChat(req: any, res: any): Promise<void>;
+    unpinChat(req: any, res: any): Promise<void>;
+    chatDisplayPicture(req: any, res: any): Promise<void>;
+    setDisplayPicture(req: any, res: any): Promise<void>;
+    createGroup(req: any, res: any): Promise<void>;
+    groupSettings(req: any, res: any): Promise<void>;
+    renameGroup(req: any, res: any): Promise<void>;
+    setGroupDescription(req: any, res: any): Promise<void>;
+    leaveGroup(req: any, res: any): Promise<void>;
+    addGroupParticipant(req: any, res: any): Promise<void>;
+    removeGroupParticipant(req: any, res: any): Promise<void>;
+    promoteGroupParticipant(req: any, res: any): Promise<void>;
+    demoteGroupParticipant(req: any, res: any): Promise<void>;
+    setTyping(req: any, res: any): Promise<void>;
+    setRecording(req: any, res: any): Promise<void>;
+    inviteCode(req: any, res: any): Promise<void>;
+    joinGroup(req: any, res: any): Promise<void>;
+    clearChat(req: any, res: any): Promise<void>;
+}
