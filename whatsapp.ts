@@ -50,11 +50,10 @@ const init = () => {
 
 const deleteSession = (sessionId, clearInstance = false) => {
 	const sessionFile = 'md_' + sessionId;
-	const rmOptions = { force: true, recursive: true }
-
-	rmSync(sessionsDir(sessionFile), rmOptions);
-
-	sessions.delete(sessionId)
+	const rmOptions = { recursive: true }
+	fs.rm(sessionsDir(sessionFile), rmOptions, ()=>{
+		sessions.delete(sessionId)
+	});
 }
 
 

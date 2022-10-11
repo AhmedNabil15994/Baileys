@@ -32,6 +32,7 @@ export default class Session extends Helper {
     }
 
     del(req, res) {
+        
         this.clearInstance(req, res);
     }
 

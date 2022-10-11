@@ -297,16 +297,14 @@ export default class Business extends Helper {
             let thumb = await generateThumbnail(responseFile.data,'image',{});
 
             let link = 'https://wa.me/c/'+ (this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0] : this.session.user.id)
-            const result = await this.session.relayMessage(this.target, {
-                extendedTextMessage:{
-                    text: 'Follow this link to view our catalog on WhatsApp: ' + link, 
-                    matchedText: link,
-                    title: this.session.user.name,
-                    canonicalUrl: '',
-                    description: '',
-                    inviteLinkGroupTypeV2: 0,
-                    jpegThumbnail:  thumb.thumbnail
-                },
+            const result = await this.session.sendMessage(this.target, {
+                catalogText: 'Follow this link to view our catalog on WhatsApp: ' + link, 
+                matchedText: link,
+                title: this.session.user.name,
+                canonicalUrl: '',
+                description: '',
+                inviteLinkGroupTypeV2: 0,
+                jpegThumbnail:  thumb.thumbnail
             }, {})
             return this.response(res, 200, true, 'Catalog has been Sent Successfully !!', result)   
         } catch (ex) {
@@ -528,16 +526,21 @@ export default class Business extends Helper {
         const reply_id = uuidv4()
 
         try {
+            console.log(this.session.authState.creds.account)
+            console.log(this.session.authState.creds.accountSettings)
+            console.log(this.session)
+            // const status = await this.session.chatModify(
+            //     { quickReply:{message:req.body.message,shortcut:req.body.shortcut,deleted:false} 
+            // }, target)
+            
 
-            const status = await this.session.chatModify(
-                { quickReply:{message:req.body.message,shortcut:req.body.shortcut,deleted:false} 
-            }, target)
+
             // await this.WLWebhook.setReply(res.locals.sessionId, {id:reply_id,message:req.body.message,shortcut:req.body.shortcut,deleted:false});
             // let replyObj = await this.WLredis.getReply(this.session_id,reply_id)
             // if(replyObj){
             //     await this.WLWebhook.deleteReply(this.session_id, reply_id);
             // }
-            return this.response(res, 200, true, 'Quick Reply has been Created Successfully !!', status)
+            return this.response(res, 200, true, 'Quick Reply has been Created Successfully !!', {})
         } catch (error) {
             return this.response(res, 500, false, 'Failed to create quick reply. ' + error)
         }

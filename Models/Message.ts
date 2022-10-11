@@ -109,13 +109,15 @@ export default class Message extends Helper {
                 }
 
                 // For Template Messages Or Preview Messages
-                if(type == 14 || type == 16){
-                    const result = await this.session.relayMessage(this.target, messageData.message, optionObj)
-                    this.response(res, 200, true, 'The message has been successfully sent.', result)
-                }else{
-                    const result = await this.session.sendMessage(this.target, messageData.message, optionObj)
-                    this.response(res, 200, true, 'The message has been successfully sent.', result)
-                }
+                // if(type == 14){
+                //     const result = await this.session.relayMessage(this.target, messageData.message, {})
+                //     this.response(res, 200, true, 'The message has been successfully sent.', result)
+                // }else{
+                //     const result = await this.session.sendMessage(this.target, messageData.message, optionObj)
+                //     this.response(res, 200, true, 'The message has been successfully sent.', result)
+                // }
+                const result = await this.session.sendMessage(this.target, messageData.message, optionObj)
+                this.response(res, 200, true, 'The message has been successfully sent.', result)
             }else{
                 messageKeyData.key['id'] = await generateMessageID(); 
                 let msgObj = {
@@ -172,38 +174,7 @@ export default class Message extends Helper {
         }
 
         try {
-            if(req.body.messageType == 16){
-                replyObj['extendedTextMessage']['contextInfo'] = {
-                    mentionedJid: [],
-                    stanzaId: messageId,
-                    participant: this.target,
-                    quotedMessage: quotedObj.quoted.message,
-                };
-                const result = await this.session.relayMessage(this.target, replyObj, {})
-                this.response(res, 200, true, 'The message has been successfully replied.', result)
-            }else if(req.body.messageType == 14){
-                let templateObj = {
-                    viewOnceMessage:{
-                        message:{
-                            templateMessage:{
-                                hydratedTemplate:{
-                                    hydratedContentText: req.body.messageData.body,
-                                    hydratedFooterText: req.body.messageData.footer,
-                                    hydratedButtons: this.formatTemplateButtons(req.body.messageData.buttons)
-                                },
-                                contextInfo:{
-                                    mentionedJid: [],
-                                    stanzaId: messageId,
-                                    participant: this.target,
-                                    quotedMessage: quotedObj.quoted.message,
-                                }
-                            },
-                        },
-                    },
-                }
-                const result = await this.session.relayMessage(this.target, templateObj, quotedObj)
-                this.response(res, 200, true, 'The message has been successfully replied.', result)
-            }else if(req.body.messageType == 17){
+            if(req.body.messageType == 17){
 
                 let imageURL = process.env.IMAGE_URL + '/groupImage.jpeg';
                 let responseFile = await axios.get(imageURL, {responseType: 'arraybuffer'})
@@ -214,22 +185,14 @@ export default class Message extends Helper {
                 let codeResponse = await this.session.groupGetInviteInfo(groupCode)
                 let groupName = codeResponse.subject ;
                 let groupInvitaionMessage = {
-                    extendedTextMessage:{
-                        text: 'Follow this link to join my WhatsApp group: : ' + link, 
-                        matchedText: link,
-                        title: groupName,
-                        description: 'WhatsApp Group Invite',
-                        inviteLinkGroupTypeV2: 0,
-                        jpegThumbnail:  thumb.thumbnail,
-                        contextInfo:{
-                            mentionedJid: [],
-                            stanzaId: messageId,
-                            participant: this.target,
-                            quotedMessage: quotedObj.quoted.message,
-                        }
-                    },
+                    groupText: 'Follow this link to join my WhatsApp group: : ' + link, 
+                    matchedText: link,
+                    title: groupName,
+                    description: 'WhatsApp Group Invite',
+                    inviteLinkGroupTypeV2: 0,
+                    jpegThumbnail:  thumb.thumbnail,
                 }
-                const result = await this.session.relayMessage(this.target, groupInvitaionMessage, {})
+                const result = await this.session.sendMessage(this.target, groupInvitaionMessage, quotedObj)
                 this.response(res, 200, true, 'The message has been successfully replied.', result)
             }else if(req.body.messageType == 18){
                 let productObj = await this.WLredis.getProduct(this.session_id, req.body.messageData.productId);
@@ -258,23 +221,15 @@ export default class Message extends Helper {
                 let link = 'https://wa.me/c/'+ (this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0] : this.session.user.id)
 
                 let catalogMessage = {
-                    extendedTextMessage:{
-                        text: 'Follow this link to view our catalog on WhatsApp: ' + link, 
-                        matchedText: link,
-                        title: this.session.user.name,
-                        canonicalUrl: '',
-                        description: '',
-                        inviteLinkGroupTypeV2: 0,
-                        jpegThumbnail:  thumb.thumbnail,
-                        contextInfo:{
-                            mentionedJid: [],
-                            stanzaId: messageId,
-                            participant: this.target,
-                            quotedMessage: quotedObj.quoted.message,
-                        }
-                    },
+                    catalogText: 'Follow this link to view our catalog on WhatsApp: ' + link, 
+                    matchedText: link,
+                    title: this.session.user.name,
+                    canonicalUrl: '',
+                    description: '',
+                    inviteLinkGroupTypeV2: 0,
+                    jpegThumbnail:  thumb.thumbnail,
                 }
-                const result = await this.session.relayMessage(this.target, catalogMessage, {})
+                const result = await this.session.sendMessage(this.target, catalogMessage, quotedObj)
                 this.response(res, 200, true, 'The message has been successfully replied.', result)
             }else{
                 const result = await this.session.sendMessage(this.target, replyObj, quotedObj)
@@ -336,24 +291,7 @@ export default class Message extends Helper {
         }
 
         try {
-            if(input.messageType == 14){
-                let templateObj = {
-                    viewOnceMessage:{
-                        message:{
-                            templateMessage:{
-                                hydratedTemplate:{
-                                    hydratedContentText: input.messageData.body,
-                                    hydratedFooterText: input.messageData.footer,
-                                    hydratedButtons: this.formatTemplateButtons(input.messageData.buttons)
-                                }
-                            }
-                        }
-                    }
-                }
-                const result = await this.session.relayMessage(this.formatPhone(phone), templateObj, {})
-            }else if(input.messageType == 16){
-                const result = await this.session.relayMessage(this.formatPhone(phone), replyObj, {})
-            }else if(input.messageType == 17){
+            if(input.messageType == 17){
                 let imageURL = process.env.IMAGE_URL + '/groupImage.jpeg';
                 let responseFile = await axios.get(imageURL, {responseType: 'arraybuffer'})
                 let thumb = await generateThumbnail(responseFile.data,'image',{});
@@ -363,16 +301,14 @@ export default class Message extends Helper {
                 let codeResponse = await this.session.groupGetInviteInfo(groupCode)
                 let groupName = codeResponse.subject ;
                 let groupInvitaionMessage = {
-                    extendedTextMessage:{
-                        text: 'Follow this link to join my WhatsApp group: : ' + link, 
-                        matchedText: link,
-                        title: groupName,
-                        description: 'WhatsApp Group Invite',
-                        inviteLinkGroupTypeV2: 0,
-                        jpegThumbnail:  thumb.thumbnail,
-                    },
+                    groupText: 'Follow this link to join my WhatsApp group: : ' + link, 
+                    matchedText: link,
+                    title: groupName,
+                    description: 'WhatsApp Group Invite',
+                    inviteLinkGroupTypeV2: 0,
+                    jpegThumbnail:  thumb.thumbnail,
                 }
-                const result = await this.session.relayMessage(this.formatPhone(phone), groupInvitaionMessage, {})
+                const result = await this.session.sendMessage(this.formatPhone(phone), groupInvitaionMessage, {})
             }else if(input.messageType == 18){
                 let productObj = await this.WLredis.getProduct(this.session_id, input.messageData.productId);
                 let productMessage = {
@@ -399,17 +335,15 @@ export default class Message extends Helper {
                 let link = 'https://wa.me/c/'+ (this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0] : this.session.user.id)
 
                 let catalogMessage = {
-                    extendedTextMessage:{
-                        text: 'Follow this link to view our catalog on WhatsApp: ' + link, 
-                        matchedText: link,
-                        title: this.session.user.name,
-                        canonicalUrl: '',
-                        description: '',
-                        inviteLinkGroupTypeV2: 0,
-                        jpegThumbnail:  thumb.thumbnail,
-                    },
+                    catalogText: 'Follow this link to view our catalog on WhatsApp: ' + link, 
+                    matchedText: link,
+                    title: this.session.user.name,
+                    canonicalUrl: '',
+                    description: '',
+                    inviteLinkGroupTypeV2: 0,
+                    jpegThumbnail:  thumb.thumbnail,
                 }
-                const result = await this.session.relayMessage(this.formatPhone(phone), catalogMessage, {})
+                const result = await this.session.sendMessage(this.formatPhone(phone), catalogMessage, {})
             }else{
                 const result = await this.session.sendMessage(this.formatPhone(phone), replyObj, newObj)
             }

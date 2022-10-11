@@ -409,15 +409,13 @@ export default class Groups extends Helper {
             let codeResponse = await this.session.groupGetInviteInfo(groupCode)
             let groupName = codeResponse.subject ;
 
-            const result = await this.session.relayMessage(this.target, {
-                extendedTextMessage:{
-                    text: 'Follow this link to join my WhatsApp group: : ' + link, 
-                    matchedText: link,
-                    title: groupName,
-                    description: 'WhatsApp Group Invite',
-                    inviteLinkGroupTypeV2: 0,
-                    jpegThumbnail:  thumb.thumbnail
-                },
+            const result = await this.session.sendMessage(this.target, {
+                groupText: 'Follow this link to join my WhatsApp group: : ' + link, 
+                matchedText: link,
+                title: groupName,
+                description: 'WhatsApp Group Invite',
+                inviteLinkGroupTypeV2: 0,
+                jpegThumbnail:  thumb.thumbnail
             }, {})
             return this.response(res, 200, true, 'Group invitation has been Sent Successfully !!', result)   
         } catch (ex) {

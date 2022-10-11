@@ -427,7 +427,16 @@ export default class Helper {
                 msgObj.message.extendedTextMessage.description != null &&
                 msgObj.message.extendedTextMessage.description == 'WhatsApp Group Invite'
             ){
-                text = 'groupInviteMessage'
+                text = 'groupInvitationMessage'
+            }else if(
+                msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl')
+            ){
+                text = 'catalogMessage'
+            }else if(
+                msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
+                msgObj.message.extendedTextMessage.previewType === 0
+            ){
+                text = 'linkWithPreview'
             }else{
                 text = 'text'
             }
@@ -453,7 +462,7 @@ export default class Helper {
             text = 'sticker'
         }else if(messageType === 'buttonsMessage' || messageType === 'viewOnceMessage' && msgObj.message.viewOnceMessage.message && msgObj.message.viewOnceMessage.message.buttonsMessage) {
             text = 'buttonsMessage'
-        }else if(messageType === 'templateMessage') {
+        }else if(messageType === 'templateMessage' || messageType === 'viewOnceMessage' && msgObj.message.viewOnceMessage.message && msgObj.message.viewOnceMessage.message.templateMessage) {
             text = 'templateMessage'
         }else if(messageType === 'listMessage' || messageType === 'viewOnceMessage' && msgObj.message.viewOnceMessage.message && msgObj.message.viewOnceMessage.message.listMessage) {
             text = 'listMessage'
@@ -536,7 +545,25 @@ export default class Helper {
                     code: msgObj.message.extendedTextMessage.matchedText.replace('https://chat.whatsapp.com/',''),
                     expiration: msgObj.message.extendedTextMessage.mediaKeyTimestamp.low,
                 }
-            }else{
+            }else if(
+                msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl')
+            ){
+                dataObj.body =  msgObj.message.extendedTextMessage.text
+                dataObj['metadata'] = {
+                    matchedText: msgObj.message.extendedTextMessage.matchedText,
+                    title: msgObj.message.extendedTextMessage.title,
+                }
+            }else if(
+                msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
+                msgObj.message.extendedTextMessage.previewType === 0
+            ){
+                dataObj.body =  msgObj.message.extendedTextMessage.text
+                dataObj['metadata'] = {
+                    matchedText: msgObj.message.extendedTextMessage.matchedText,
+                    title: msgObj.message.extendedTextMessage.title,
+                }
+            }
+            else{
                 // Text Message Received
                 dataObj.body = msgObj.message.extendedTextMessage.text
             }
@@ -923,7 +950,7 @@ export default class Helper {
         }else if(type == 14){
             let templateButtons = this.formatTemplateButtons(input.messageData.buttons)
             let buttonMessage = {
-                text: input.messageData.body,
+                content: input.messageData.body,
                 footer: input.messageData.footer,
                 templateButtons:templateButtons,
             }
@@ -945,12 +972,10 @@ export default class Helper {
             replyObj = buttonMessage
         }else if(type == 16){
             replyObj = {
-                extendedTextMessage: {
-                    text: input.messageData.body ? input.messageData.body + ' ' + input.messageData.url : input.messageData.url,
-                    matchedText:input.messageData.url,
-                    title:input.messageData.title,
-                    previewType:2,
-                },
+                linkText:input.messageData.body ? input.messageData.body + ' ' + input.messageData.url : input.messageData.url ,
+                matchedText: input.messageData.url,
+                title:input.messageData.title,
+                previewType:2,
             }
         }
         return replyObj;
@@ -1039,7 +1064,7 @@ export default class Helper {
         require('events').EventEmitter.defaultMaxListeners = 100000;
         var newSessionId = sessionId.replace('wlChannel', '')
 
-        console.log(msg);
+        console.log(msg.message);
 
         let status = this.getMessageStatus(msg);
         const deviceType = getDevice(msg.key.id)
@@ -1220,18 +1245,24 @@ export default class Helper {
             }
 
             msgObj.message = {
-                viewOnceMessage:{
-                    message:{
-                        templateMessage:{
-                            hydratedTemplate:{
-                                hydratedContentText: buttonMessage.text,
-                                hydratedFooterText: buttonMessage.footer,
-                                hydratedButtons: templateButtons
-                            }
-                        }
-                    }
-                }
+                content: buttonMessage.text,
+                footer: buttonMessage.footer,
+                templateButtons: templateButtons,
             }
+            
+            // msgObj.message = {
+            //     viewOnceMessage:{
+            //         message:{
+            //             templateMessage:{
+            //                 hydratedTemplate:{
+            //                     hydratedContentText: buttonMessage.text,
+            //                     hydratedFooterText: buttonMessage.footer,
+            //                     hydratedButtons: templateButtons
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
             
         }else if(type == 15){
             const buttonMessage = {
@@ -1243,13 +1274,19 @@ export default class Helper {
             }
             msgObj.message = buttonMessage
         }else if(type == 16){
-            msgObj.message ={
-                extendedTextMessage:{
-                    text:input.body,
-                    matchedText: input.url,
-                    title:input.title,
-                    previewType:2,
-                }
+            // msgObj.message ={
+            //     extendedTextMessage:{
+            //         text:input.body,
+            //         matchedText: input.url,
+            //         title:input.title,
+            //         previewType:2,
+            //     }
+            // }
+            msgObj.message = {
+                linkText:input.body ? input.body + ' ' + input.url : input.url ,
+                matchedText: input.url,
+                title:input.title,
+                previewType:2,
             }
         }
        
