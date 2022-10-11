@@ -526,21 +526,16 @@ export default class Business extends Helper {
         const reply_id = uuidv4()
 
         try {
-            console.log(this.session.authState.creds.account)
-            console.log(this.session.authState.creds.accountSettings)
-            console.log(this.session)
-            // const status = await this.session.chatModify(
-            //     { quickReply:{message:req.body.message,shortcut:req.body.shortcut,deleted:false} 
-            // }, target)
-            
 
-
+            const status = await this.session.chatModify(
+                { quickReply:{message:req.body.message,shortcut:req.body.shortcut,deleted:false} 
+            }, target)
             // await this.WLWebhook.setReply(res.locals.sessionId, {id:reply_id,message:req.body.message,shortcut:req.body.shortcut,deleted:false});
             // let replyObj = await this.WLredis.getReply(this.session_id,reply_id)
             // if(replyObj){
             //     await this.WLWebhook.deleteReply(this.session_id, reply_id);
             // }
-            return this.response(res, 200, true, 'Quick Reply has been Created Successfully !!', {})
+            return this.response(res, 200, true, 'Quick Reply has been Created Successfully !!', status)
         } catch (error) {
             return this.response(res, 500, false, 'Failed to create quick reply. ' + error)
         }
