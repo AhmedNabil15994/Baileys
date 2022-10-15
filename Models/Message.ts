@@ -33,7 +33,18 @@ export default class Message extends Helper {
     async fetchMessages(req, res) {
         const sessionId = req.query.id ?? req.params.id
         try {
-            this.response(res, 200, true, 'Messages Found !!!', await this.WLredis.getMessages(sessionId))
+            let messages = await this.WLredis.getMessages(sessionId);
+            messages.sort(function(left,right): any {
+                if (left.time === right.time) {
+                  return 0;
+                }
+                return (left.time < right.time)? 1: -1
+            });
+            // Start Pagination
+            let page = req.query.page ?? 1;
+            let page_size = req.query.page_size ?? 100;
+            let paginatedMessage = await this.paginateData(messages,page,page_size)
+            this.response(res, 200, true, 'Messages Found !!!', paginatedMessage)
         } catch {
             this.response(res, 500, false, 'Failed to load the message.')
         }

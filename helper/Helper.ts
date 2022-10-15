@@ -1293,4 +1293,26 @@ export default class Helper {
 
         return msgObj
     }
+
+    async paginateData(data,page,size){
+        let pageIndex = page - 1;
+        const result = data.reduce((resultArray, item, index) => { 
+            const chunkIndex = Math.floor(index/size)
+            if(!resultArray[chunkIndex]) {
+                resultArray[chunkIndex] = [] // start a new chunk
+            }
+            resultArray[chunkIndex].push(item)
+            return resultArray
+        }, [])
+        return {
+            data: result[pageIndex] ?? [],
+            pagination:{
+                currentPage: Number(page),
+                nextPage: (result.length > Number(page) )  ? Number(page) + 1 : Number(page),
+                lastPage: Number(result.length),
+                pageLimit: Number(size),
+                totalCount: Number(data.length),
+            }
+        }
+    }
 }

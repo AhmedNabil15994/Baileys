@@ -54,7 +54,10 @@ export default class Chats extends Helper {
                     })
                 }));
             }
-            this.response(res, 200, true, 'Dialogs Found !!!', dialogsArr)
+            let page = req.query.page ?? 1;
+            let page_size = req.query.page_size ?? 100;
+            let paginatedData = await this.paginateData(dialogsArr,page,page_size)
+            this.response(res, 200, true, 'Dialogs Found !!!', paginatedData)
         } catch {
             this.response(res, 500, false, 'Failed to load Dialogs.')
         }

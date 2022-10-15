@@ -83,15 +83,22 @@ export default class WLRedis extends Helper {
     }
 
     async deleteOneChat(session_id, chat) {
-        const jsonCache = new JSONCache<typeof chat>(this.redis, { prefix: `${session_id}:chats:` });
-        jsonCache.del(chat.id);
+        let chat_id = chat.id
+        const jsonCache = new JSONCache<typeof chat>(this.redis, { prefix: `${session_id}:chats:${chat_id}` });
+        jsonCache.clearAll();
         (process.env.DEBUG_MODE == 'true') ? console.log('WLRedis deleteChat') : '';
     }
 
     async deleteOneMessage(session_id, message) {
         const jsonCache = new JSONCache<typeof message>(this.redis, { prefix: `${session_id}:messages:` });
-        jsonCache.del(message.id);
+        jsonCache.clearAll();
         (process.env.DEBUG_MODE == 'true') ? console.log('WLRedis deleteMessage') : '';
+    }
+
+    async deleteMessages(session_id) {
+        const jsonCache = new JSONCache(this.redis, { prefix: `${session_id}:messages:` });
+        jsonCache.clearAll();
+        (process.env.DEBUG_MODE == 'true') ? console.log('WLRedis deleteMessages') : '';
     }
 
     // Set Array
@@ -140,12 +147,14 @@ export default class WLRedis extends Helper {
         try {
             if (messages && messages !== "undefined" && messages !== null) {
                 messages.forEach(async (element) => {
-                    if (element.message && element.message !== "undefined" && element.message !== null) {
+                    if(element.hasOwnProperty('message')){//if (element.message && element.message !== "undefined" && element.message !== null) {
                         const messageType = Object.keys(element.message)[0] // Get what type of message it is -- text, image, video
                         if (messageType != 'protocolMessage') {
                             element = await this.reformatMessageObj(session_id, element, messageType, sock);
                             await jsonCache.set(element.id, element)
                         }
+                    }else{
+                        await jsonCache.set(element.id, element)
                     }
                 });
             }

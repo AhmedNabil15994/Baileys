@@ -158,7 +158,10 @@ export default class Instance extends Helper {
                 }
                 contactsArr.push(contact)
             }));
-            this.response(res, 200, true, 'User Contacts Found !!!', contactsArr)
+            let page = req.query.page ?? 1;
+            let page_size = req.query.page_size ?? 100;
+            let paginatedData = await this.paginateData(contactsArr,page,page_size)
+            this.response(res, 200, true, 'User Contacts Found !!!', paginatedData)
         } catch {
             this.response(res, 500, false, 'Failed to load user contacts.')
         }

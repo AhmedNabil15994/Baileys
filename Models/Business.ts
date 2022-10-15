@@ -485,10 +485,14 @@ export default class Business extends Helper {
         const target = this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0]+'@s.whatsapp.net' : this.session.user.id 
         const label_id = req.body.labelId
         try {
+            // const status = await this.session.labelUpdate(req.body.labelId,{
+            //     name:req.body.name,color:req.body.color,deleted:false
+            // })
+            // console.log(status)
             const status = await this.session.chatModify(
                 { labelEdit:{label_id:label_id,name:req.body.name,color:req.body.color,deleted:false} 
             }, target)
-            await this.WLWebhook.updateLabel(this.session_id, {id:label_id,name:req.body.name,color:req.body.color,deleted:false});
+            // await this.WLWebhook.updateLabel(this.session_id, {id:label_id,name:req.body.name,color:req.body.color,deleted:false});
 
             return this.response(res, 200, true, 'Label has been updated Successfully !!', status)
         } catch (error) {
