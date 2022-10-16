@@ -12,7 +12,7 @@ export default class WLWebhook extends Helper {
         super();
         dotenv.config();
         this.needle = needle;
-        this.base_url = process.env.BACKEND_URL;
+        this.base_url = process.env.WEBHOOK_URL;
         this.Redis = new WLRedis();
     }
 
@@ -20,13 +20,14 @@ export default class WLWebhook extends Helper {
         try {
             await this.Redis.setMessage(sessionId, message);
             message.status = message.status - 1;
+            let newMessage = JSON.stringify(message)
             await this.needle.post(
-                this.base_url + '/webhooks/messages-webhook',
+                this.base_url,
                 {
                     conversation: {
                         id: message.remoteJid,
                         lastTime: message.time,
-                        lastMessage: message,
+                        lastMessage: newMessage,
                     },
                     sessionId,
                 },
@@ -81,7 +82,7 @@ export default class WLWebhook extends Helper {
         try {
             message.key.remoteJid = this.fixRemoteJid(message.key.remoteJid);
             await this.needle.post(
-                this.base_url + '/webhooks/messages-webhook',
+                this.base_url,
                 {
                     messageStatus: {
                         id: message.key.id,
@@ -105,18 +106,18 @@ export default class WLWebhook extends Helper {
     async ChatsUpdate(sessionId, chat) {
         try {
             await this.Redis.updateChat(sessionId, chat);
-            // await this.needle.post(
-            //     this.base_url + '/webhooks/messages-webhook',
-            //     {
-            //         conversationStatus: {
-            //             data: message,
-            //         },
-            //         sessionId,
-            //     },
-            //     (err, resp, body) => {
-            //         (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook ChatsUpdate : ' + body) : '';
-            //     }
-            // )
+            await this.needle.post(
+                this.base_url,
+                {
+                    conversationStatus: {
+                        data: chat,
+                    },
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook ChatsUpdate : ' + body) : '';
+                }
+            )
             // TODO: Send Updates To Redis
             // M[0]['image'] = await getSession(sessionId).profilePictureUrl(m[0].id, 'image')
             // await processRedisData(sessionId, "conversations", m[0])
@@ -130,18 +131,19 @@ export default class WLWebhook extends Helper {
 
     async ChatsDelete(sessionId, chat) {
         await this.Redis.deleteChat(sessionId, chat);
-        // await this.needle.post(
-        //     this.base_url + '/webhooks/messages-webhook',
-        //     {
-        //         chatDeleted: {
-        //             id: m[0].id,
-        //         },
-        //         sessionId,
-        //     },
-        //     (err, resp, body) => {
-        //         console.log('connectionConnected : ' + body);
-        //     }
-        // )
+        await this.needle.post(
+            this.base_url,
+            {
+                chatDeleted: {
+                    id: chat,
+                    deleted:true,
+                },
+                sessionId,
+            },
+            (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook ChatsDelete : ' + body) : '';
+            }
+        )
         // TODO: Send Delete To Redis
         // await processRedisData(client, sessionId + "_conversations", {
         //  id: m[0].id,

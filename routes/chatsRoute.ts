@@ -20,6 +20,16 @@ router.post(
 )
 
 router.post(
+    '/clearChat',
+    query('id').notEmpty(),
+    body('phone'),
+    body('chat').if(body('phone').not().exists()).notEmpty(),
+    requestValidator,
+    sessionValidator,
+    (req, res) => new Chats(req, res).clearChat(req, res)
+)
+
+router.post(
     '/readChat',
     query('id').notEmpty(),
     body('phone'),

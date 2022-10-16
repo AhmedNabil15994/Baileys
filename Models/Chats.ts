@@ -115,6 +115,24 @@ export default class Chats extends Helper {
         }
     }
 
+    async clearChat(req, res) {
+        try {
+            const exists = await this.onWhatsApp(this.session, this.target)
+
+            if (!exists) {
+                return this.response(res, 400, false, 'This chat does not exist.')
+            }
+            const lastMsgInChat = await this.WLredis.getLastMessageInChat(this.session_id, this.target)
+            const status = await this.session.chatModify({ clear: 'all', lastMessages: [lastMsgInChat] }, this.target)
+            return this.response(res, 200, true, 'Chat Cleared Successfully !!', {
+                cleared:true,
+                remoteJid: this.target, 
+            })
+        } catch (error) {
+            return this.response(res, 500, false, 'Failed to clear chat : ' + error)
+        }
+    }
+
     async readChat(req, res) {
         try {
             const exists = await this.onWhatsApp(this.session, this.target)

@@ -354,14 +354,14 @@ export default class Helper {
             dataObj.metadata['isAnimated'] = msg.message[messageType].isAnimated;
         }
 
-        let mediaTypeText = (extension == 'gif' ||( msg.message[messageType].hasOwnProperty('gifAttribution') && msg.message[messageType].hasOwnProperty('gifPlayback')) ) ? 'gif' : MediaType;
+        let mediaTypeText = (extension == 'gif' ||( msg.message[messageType].hasOwnProperty('gifPlayback') && msg.message[messageType].gifPlayback == true ) ) ? 'gif' : MediaType;
 
         if (msg.message[messageType].hasOwnProperty('contextInfo') && msg.message[messageType].contextInfo.hasOwnProperty('quotedMessage')) {
             let quotedMessageType = Object.keys( msg.message[messageType].contextInfo.quotedMessage)[0];
             let newMsgObj = {
                 key: {
                     remoteJid:  msg.message[messageType].contextInfo.participant,
-                    fromMe: false,
+                    fromMe: msg.message[messageType].contextInfo.quotedMessage.hasOwnProperty('fromMe') ?  msg.message[messageType].contextInfo.quotedMessage.fromMe : false ,
                     id:  msg.message[messageType].contextInfo.stanzaId
                 },
                 message: msg.message[messageType].contextInfo.quotedMessage,
@@ -485,7 +485,8 @@ export default class Helper {
     async getMessageTypeDetails(msgObj,messageType,time,newSessionId,sock){
         let dataObj = {
             body:'',
-            metadata:{}
+            metadata:{},
+            fromMe:msgObj.key.fromMe
         };
 
         if (messageType == 'conversation') {
@@ -580,10 +581,10 @@ export default class Helper {
                 msgObj.message.ephemeralMessage.message.extendedTextMessage &&
                 msgObj.message.ephemeralMessage.message.extendedTextMessage.contextInfo
             ) {
-                let expireTime = msgObj.message.ephemeralMessage.message.extendedTextMessage.contextInfo.expiration +
+                let expireTime = (msgObj.message.ephemeralMessage.message.extendedTextMessage.contextInfo.expiration / 1000) +
                     time;
-                dataObj['expiration'] = expireTime
-                dataObj['expirationFormatted'] = new Date(expireTime * 1000).toUTCString()
+                dataObj['metadata']['expiration'] = expireTime 
+                dataObj['metadata']['expirationFormatted'] = new Date(expireTime * 1000).toUTCString()
             }
         }else if (messageType == 'locationMessage') {
             // Location Message Sent From ME
@@ -702,7 +703,7 @@ export default class Helper {
                 let newMsgObj = {
                     key:{
                         id: msgObj.message.buttonsResponseMessage.contextInfo.stanzaId,
-                        fromMe: false,
+                        fromMe: true,
                         remoteJid: msgObj.key.remoteJid
                     },
                     message:{
@@ -726,7 +727,7 @@ export default class Helper {
                 let newMsgObj = {
                     key:{
                         id: msgObj.message.templateButtonReplyMessage.contextInfo.stanzaId,
-                        fromMe: false,
+                        fromMe: true,
                         remoteJid: msgObj.key.remoteJid
                     },
                     message:{
@@ -751,7 +752,7 @@ export default class Helper {
                 let newMsgObj = {
                     key:{
                         id: msgObj.message.listResponseMessage.contextInfo.stanzaId,
-                        fromMe: false,
+                        fromMe: true,
                         remoteJid: msgObj.key.remoteJid
                     },
                     message:{

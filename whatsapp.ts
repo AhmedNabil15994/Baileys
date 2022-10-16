@@ -263,7 +263,6 @@ const createSession = async (sessionId, res = null) => {
 				if (events['chats.delete']) {
 					const m = events['chats.delete']
 					try {
-						console.log(m)
 						await Webhook.ChatsDelete(sessionId, m[0])
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('chats.delete error', e) : '';

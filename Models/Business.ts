@@ -527,12 +527,12 @@ export default class Business extends Helper {
 
     async createQuickReply(req, res) {
         const target = this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0]+'@s.whatsapp.net' : this.session.user.id 
-        const reply_id = uuidv4()
+        const reply_id = uuidv4().toUpperCase()
 
         try {
 
             const status = await this.session.chatModify(
-                { quickReply:{message:req.body.message,shortcut:req.body.shortcut,deleted:false} 
+                { quickReply:{id:reply_id,message:req.body.message,shortcut:req.body.shortcut,deleted:false} 
             }, target)
             // await this.WLWebhook.setReply(res.locals.sessionId, {id:reply_id,message:req.body.message,shortcut:req.body.shortcut,deleted:false});
             // let replyObj = await this.WLredis.getReply(this.session_id,reply_id)

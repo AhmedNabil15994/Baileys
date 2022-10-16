@@ -115,7 +115,7 @@ export default class Message extends Helper {
                 // For Disappearing Messages
                 if(type == 10){
                     optionObj = {
-                        ephemeralExpiration: req.body.expiration ? req.body.expiration : WA_DEFAULT_EPHEMERAL
+                        ephemeralExpiration: req.body.expiration ? req.body.expiration * 1000 : WA_DEFAULT_EPHEMERAL
                     }
                 }
 
@@ -176,7 +176,7 @@ export default class Message extends Helper {
 
         if(req.body.messageType == 10 ){
             let newObj={
-                ephemeralExpiration: req.body.messageData.expiration
+                ephemeralExpiration: req.body.messageData.expiration ? req.body.messageData.expiration * 1000 : WA_DEFAULT_EPHEMERAL
             }
             quotedObj={
                 ...quotedObj,
@@ -297,7 +297,7 @@ export default class Message extends Helper {
 
         if(input.messageType == 10 ){
             newObj={
-                ephemeralExpiration: input.messageData.expiration
+                ephemeralExpiration: input.messageData.expiration ? input.messageData.expiration * 1000 : WA_DEFAULT_EPHEMERAL
             }
         }
 

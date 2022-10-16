@@ -350,6 +350,28 @@ export default class WLRedis extends Helper {
         }
     }
 
+    async getLastMessagesInChat(session_id, chatId) {
+        let all_messages = await this.getMessages(session_id);
+        let messages : any[] = [];
+        let time = 0;
+        await Promise.all(Object.values(all_messages).map(async (element) => {
+            if (element.remoteJid == chatId) {
+                time = parseInt(element.time);
+                // message = element;
+                messages.push({
+                    key: {
+                        remoteJid: element.remoteJid,
+                        fromMe: element.fromMe == 'true' ? true:false,
+                        id: element.id,
+                        participant: null,
+                    },
+                    messageTimestamp: time,
+                });
+            }
+        }));
+        return messages
+    }
+
     // Update One
     async updateContact(session_id, contact) {
         let contact_id = contact.id;
