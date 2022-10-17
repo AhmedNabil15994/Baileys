@@ -295,6 +295,9 @@ export default class Helper {
 
 
     async getMessageInfo(msgObj,messageType,time,newSessionId,sock){
+        let fixedType = '';
+
+
         let dataObj ={
             messageType: this.getMessageTypeText(msgObj,messageType),
             metadata:{}
@@ -745,6 +748,7 @@ export default class Helper {
             dataObj.metadata['selectedOptionText'] = msgObj.message.listResponseMessage.title;
             dataObj.metadata['selectedRowId'] = msgObj.message.listResponseMessage.singleSelectReply.selectedRowId;
             dataObj.metadata['selectedOptionDescription'] = msgObj.message.listResponseMessage.description;
+            dataObj.metadata['quotedMessageId'] = msgObj.message.listResponseMessage.contextInfo.stanzaId;       
             dataObj.metadata['listType'] = msgObj.message.listResponseMessage.listType;
 
             let quotedMessageType = Object.keys( msgObj.message.listResponseMessage.contextInfo.quotedMessage)[0];
@@ -775,6 +779,7 @@ export default class Helper {
             dataObj.metadata['price'] = Number(msgObj.message.orderMessage.totalAmount1000.low )/ 1000;    
             dataObj.metadata['currency'] = msgObj.message.orderMessage.totalCurrencyCode;
         }else if (msgObj.message && msgObj.message.productMessage && msgObj.message.productMessage.product) {
+            dataObj.body = msgObj.message.productMessage.product.title;
             dataObj.metadata['productId'] = msgObj.message.productMessage.product.productId;    
             dataObj.metadata['title'] = msgObj.message.productMessage.product.title;    
             dataObj.metadata['description'] = msgObj.message.productMessage.product.description;    
@@ -790,7 +795,8 @@ export default class Helper {
         let dataObj = {
             key:{
                 remoteJid: msg.remoteJid,
-                fromMe: msg.fromMe != "" ? Boolean(JSON.parse(msg.fromMe)) : false,
+                fromMe: msg.fromMe != "" ? msg.fromMe : false,
+                // fromMe: msg.fromMe != "" ? Boolean(JSON.parse(msg.fromMe)) : false,
                 id: msg.id,
                 participant: undefined
             }
@@ -818,6 +824,8 @@ export default class Helper {
             bodyText = '😢'
         } else if (reaction == 6) {
             bodyText = '🙏'
+        }else{
+            bodyText = ''
         }
         return bodyText
     }
