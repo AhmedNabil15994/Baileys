@@ -7,8 +7,8 @@ import Message from '../Models/Message'
 const router = Router()
 
 
-router.get('/', query('id').notEmpty(), requestValidator, sessionValidator, (req, res) => new Message(req, res).fetchMessages(req, res))
-router.post('/getMessageByID', query('id').notEmpty(), body('phone'), body('messageId').notEmpty(), requestValidator, sessionValidator, (req, res) => new Message(req, res).findMessage(req, res))
+router.get('/', query('id').notEmpty(), requestValidator, (req, res) => new Message(req, res).fetchMessages(req, res))
+router.post('/getMessageByID', query('id').notEmpty(), body('phone'), body('messageId').notEmpty(), requestValidator, (req, res) => new Message(req, res).findMessage(req, res))
 
 router.post(
     '/sendOFFMessage',
