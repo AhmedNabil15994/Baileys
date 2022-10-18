@@ -53,6 +53,7 @@ export default class Message extends Helper {
     async findMessage(req, res) {
         try {
             const selected = await this.WLredis.getMessage(this.session_id, req.body.messageId)
+            console.log(req.body.messageId);
             if (!selected) {
                 return this.response(res, 400, false, 'This message does not exist.')
             }
