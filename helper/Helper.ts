@@ -1072,7 +1072,7 @@ export default class Helper {
     async reformatMessageObj(sessionId, msg, messageType, sock) {
         require('events').EventEmitter.defaultMaxListeners = 100000;
         var newSessionId = sessionId.replace('wlChannel', '')
-
+        
         console.log(msg.message);
 
         let status = this.getMessageStatus(msg);

@@ -78,7 +78,7 @@ const createSession = async (sessionId, res = null) => {
 		const sock = makeWASocket({
 			version,
 			logger,
-			printQRInTerminal: true,
+			printQRInTerminal: false,
 			markOnlineOnConnect: true,
 			auth: state,
 			browser: Browsers.macOS('Desktop'),
