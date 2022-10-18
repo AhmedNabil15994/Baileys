@@ -34,11 +34,8 @@ export default class Message extends Helper {
         const sessionId = req.query.id ?? req.params.id
         try {
             let messages = await this.WLredis.getMessages(sessionId);
-            messages.sort(function(left,right): any {
-                if (left.time === right.time) {
-                  return 0;
-                }
-                return (left.time < right.time)? 1: -1
+            messages.sort(function(a,b): any {
+                return Number(a.time) > Number(b.time) ? -1 : 1
             });
             // Start Pagination
             let page = req.query.page ?? 1;
