@@ -53,7 +53,7 @@ router.post(
     (req, res) => new Instance(req, res).updateProfileStatus(req, res)
 )
 
-router.get('/contacts', query('id').notEmpty(), requestValidator,sessionValidator, (req, res) => new Instance(req, res).fetchContacts(req, res))
-router.post('/contacts/getContactByID', query('id').notEmpty(),body('phone').notEmpty(),body('chat').if(body('phone').not().exists()).notEmpty(), requestValidator,sessionValidator, (req, res) => new Instance(req, res).getContactByID(req, res))
+router.get('/contacts', query('id').notEmpty(), requestValidator, (req, res) => new Instance(req, res).fetchContacts(req, res))
+router.post('/contacts/getContactByID', query('id').notEmpty(),body('phone').notEmpty(),body('chat').if(body('phone').not().exists()).notEmpty(), requestValidator, (req, res) => new Instance(req, res).getContactByID(req, res))
 
 export default router

@@ -107,7 +107,6 @@ router.post(
     '/labels',
     query('id').notEmpty(),
     requestValidator,
-    sessionValidator,
     (req, res) => new Business(req,res).getLabels(req, res)
 )
 
@@ -184,7 +183,6 @@ router.post(
     '/quickReplies',
     query('id').notEmpty(),
     requestValidator,
-    sessionValidator,
     (req, res) => new Business(req,res).getQuickReplies(req, res)
 )
 

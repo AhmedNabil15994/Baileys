@@ -23,7 +23,7 @@ export default class Business extends Helper {
         this.WLWebhook = new WLWebhook();
         // set Session & target
         this.session = (res.locals.sessionId) ? getSession(res.locals.sessionId) : '';
-        this.session_id = res.locals.sessionId
+        this.session_id = res.locals.sessionId ? res.locals.sessionId : (req.query.id ?? req.params.id)
         if (req.body.phone || req.body.chat) {
             this.target = req.body.phone ? this.formatPhone(req.body.phone) : this.formatGroup(req.body.chat)
         }
@@ -315,13 +315,6 @@ export default class Business extends Helper {
 
     async getLabels(req, res) {
         try {
-            let userId = this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0]+'@s.whatsapp.net' : this.session.user.id
-            const exists = await this.isBusiness(this.session, userId)
-
-            if (!exists) {
-                return this.response(res, 400, false, "This profile isn't business account.")
-            }
-
             const labels = await this.WLredis.getLabels(this.session_id);
             return this.response(res, 200, true, 'User Labels Data Generated Successfully !!', labels)
         } catch (ex) {

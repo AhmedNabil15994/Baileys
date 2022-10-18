@@ -19,7 +19,7 @@ export default class Chats extends Helper {
         this.WLredis = new WLRedis();
         // set Session & target
         this.session = (res.locals.sessionId) ? getSession(res.locals.sessionId) : '';
-        this.session_id = res.locals.sessionId
+        this.session_id = res.locals.sessionId ? res.locals.sessionId : (req.query.id ?? req.params.id)
         if (req.body.phone || req.body.chat) {
             this.target = req.body.phone ? this.formatPhone(req.body.phone) : this.formatGroup(req.body.chat)
         }

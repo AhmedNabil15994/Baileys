@@ -6,8 +6,8 @@ import Chats from '../Models/Chats'
 
 const router = Router()
 
-router.get('/', query('id').notEmpty(), requestValidator,sessionValidator, (req, res) => new Chats(req, res).fetchDialogs(req, res))
-router.post('/getChatByID', query('id').notEmpty(),body('phone'),body('chat').if(body('phone').not().exists()).notEmpty(), requestValidator,sessionValidator, (req, res) => new Chats(req, res).getChat(req, res))
+router.get('/', query('id').notEmpty(), requestValidator, (req, res) => new Chats(req, res).fetchDialogs(req, res))
+router.post('/getChatByID', query('id').notEmpty(),body('phone'),body('chat').if(body('phone').not().exists()).notEmpty(), requestValidator, (req, res) => new Chats(req, res).getChat(req, res))
 
 router.post(
     '/deleteChat',

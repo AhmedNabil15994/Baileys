@@ -19,7 +19,7 @@ export default class Message extends Helper {
         this.WLredis = new WLRedis();
         // set Session & target
         this.session = (res.locals.sessionId) ? getSession(res.locals.sessionId) : '';
-        this.session_id = res.locals.sessionId
+        this.session_id = res.locals.sessionId ? res.locals.sessionId : (req.query.id ?? req.params.id)
         if (req.body.phone || req.body.chat) {
             this.target = req.body.phone ? this.formatPhone(req.body.phone) : this.formatGroup(req.body.chat)
         }
@@ -31,9 +31,8 @@ export default class Message extends Helper {
     //  to be sent while there's no connection 
     
     async fetchMessages(req, res) {
-        const sessionId = req.query.id ?? req.params.id
         try {
-            let messages = await this.WLredis.getMessages(sessionId);
+            let messages = await this.WLredis.getMessages(this.session_id);
             messages.sort(function(a,b): any {
                 return Number(a.time) > Number(b.time) ? -1 : 1
             });
@@ -50,11 +49,9 @@ export default class Message extends Helper {
     async findMessage(req, res) {
         try {
             const selected = await this.WLredis.getMessage(this.session_id, req.body.messageId)
-            console.log(req.body.messageId);
             if (!selected) {
                 return this.response(res, 400, false, 'This message does not exist.')
             }
-            // const msgObj =  reformatMessageObj(res.locals.sessionId,selected, Object.keys (selected.message)[0])
             this.response(res, 200, true, 'Message Found !!!', selected)
         } catch {
             this.response(res, 500, false, 'Failed to load the message.')
