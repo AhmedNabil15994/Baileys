@@ -20,6 +20,28 @@ export default class WLRedis extends Helper {
             // db: 0, // Defaults to 0
         })
     }
+
+    // Set One
+    async setOne(session_id,data,instance,dbInstance){
+        const jsonCache = new JSONCache<typeof instance>(this.redis, { prefix: `${session_id}:${dbInstance}:` });
+        return jsonCache.set(data.id, data);
+    }
+
+    // Delete One
+    async deleteOne(session_id,id,instance,dbInstance){
+        const jsonCache = new JSONCache<typeof instance>(this.redis, { prefix: `${session_id}:${dbInstance}:${id}` });
+        return jsonCache.clearAll();
+    }
+
+    // Set Array
+    async setData(session_id,data,instance,dbInstance){
+        const jsonCache = new JSONCache<typeof instance[0]>(this.redis, { prefix: `${session_id}:${dbInstance}:` });
+        data.forEach(element => {
+            jsonCache.set(element.id, element)
+        });
+        return 1;
+    }
+
     // Set One
     async setContact(session_id, contact) {
         const jsonCache = new JSONCache<typeof contact>(this.redis, { prefix: `${session_id}:contacts:` });
@@ -52,6 +74,7 @@ export default class WLRedis extends Helper {
     }
 
     async setMessage(session_id, message) {
+        // this.setOne(session_id,message,'message','messages');
         const jsonCache = new JSONCache<typeof message>(this.redis, { prefix: `${session_id}:messages:` });
         jsonCache.set(message.id, message);
         (process.env.DEBUG_MODE == 'true') ? console.log('WLRedis setMessage') : '';
@@ -330,16 +353,25 @@ export default class WLRedis extends Helper {
             (process.env.DEBUG_MODE == 'true') ? console.log("WLRedis getChat" + error) : '';
         }
     }
-    async getLastMessageInChat(session_id, chatId) {
+    async getLastMessageInChat(session_id, chatId, type=1) {
         let all_messages = await this.getMessages(session_id);
-        let message;
-        let time = 0;
+        let messages : any[] = [];
         await Promise.all(Object.values(all_messages).map(async (element) => {
-            if (element.remoteJid == chatId && parseInt(element.time) >= time) {
-                time = parseInt(element.time);
-                message = element;
+            if (element.remoteJid == chatId) {
+                messages.push(element)
             }
         }));
+
+        await messages.sort(function(a,b): any {
+            return Number(b.time) > Number(a.time) ? -1 : 1
+        });
+        messages.reverse()
+     
+        let message = messages[0];
+        if(type == 2){
+            return message
+        }
+
         return {
             key: {
                 remoteJid: message.remoteJid,

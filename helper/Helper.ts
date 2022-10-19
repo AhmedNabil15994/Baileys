@@ -531,7 +531,7 @@ export default class Helper {
             }else if(
                 // Forward Message
                 msgObj.message.extendedTextMessage.contextInfo != null &&
-                msgObj.message.extendedTextMessage.contextInfo.isForwarded != null
+                msgObj.message.extendedTextMessage.contextInfo.hasOwnProperty('isForwarded')
             ){
                 dataObj.body =  msgObj.message.extendedTextMessage.text
                 dataObj['metadata'] = {
@@ -1072,8 +1072,6 @@ export default class Helper {
     async reformatMessageObj(sessionId, msg, messageType, sock) {
         require('events').EventEmitter.defaultMaxListeners = 100000;
         var newSessionId = sessionId.replace('wlChannel', '')
-        
-        console.log(msg.message);
 
         let status = this.getMessageStatus(msg);
         const deviceType = getDevice(msg.key.id)

@@ -181,7 +181,14 @@ const createSession = async (sessionId, res = null) => {
 						if (!msg.message) {
 							return
 						} // If there is no text or media message
-						const messageType = Object.keys(msg.message)[0] == 'messageContextInfo' ? (Object.keys(msg.message)[1] == 'messageContextInfo' ? Object.keys(msg.message)[2] : Object.keys(msg.message)[1]) : Object.keys(msg.message)[0] // Get what type of message it is -- text, image, video
+						console.log(msg.message)
+						if(msg.message.hasOwnProperty('senderKeyDistributionMessage')){
+							delete msg.message['senderKeyDistributionMessage']
+						}
+						if(msg.message.hasOwnProperty('messageContextInfo')){
+							delete msg.message['messageContextInfo']
+						}
+						const messageType = Object.keys(msg.message)[0] // Get what type of message it is -- text, image, video
 						if (msg.key.remoteJid !== 'status@broadcast' && messageType != 'protocolMessage') {
 							const messageObj = await WLHelper.reformatMessageObj(sessionId, msg, messageType, sock)
 							if (messageObj) {

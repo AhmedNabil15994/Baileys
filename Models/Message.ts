@@ -33,9 +33,10 @@ export default class Message extends Helper {
     async fetchMessages(req, res) {
         try {
             let messages = await this.WLredis.getMessages(this.session_id);
-            messages.sort(function(a,b): any {
-                return Number(a.time) > Number(b.time) ? -1 : 1
+            await messages.sort(function(a,b): any {
+                return Number(b.time) > Number(a.time) ? -1 : 1
             });
+            messages.reverse();
             // Start Pagination
             let page = req.query.page ?? 1;
             let page_size = req.query.page_size ?? 100;

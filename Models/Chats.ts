@@ -63,6 +63,102 @@ export default class Chats extends Helper {
         }
     }
 
+
+    async myChats(req, res) {
+        try {
+            let dialogs: any[] = await this.WLredis.getChats(this.session_id);
+            let pinned: any[] = []
+            let notPinned: any[] = []
+            let image = '';
+            let messages = [];
+            let contacts = [];
+            if(dialogs.length){
+                await Promise.all(Object.values(dialogs).map(async (dialog) => {
+                    try {
+                        messages =  await this.WLredis.getLastMessageInChat(this.session_id,dialog.id,2);
+                        // image = await getSession(this.session_id).profilePictureUrl(dialog.id)
+                    } catch (e) {
+                        (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', dialog.id) : '';
+                    }
+
+                    let dataObj = {
+                        'id': dialog.id,
+                        'unreadCount': dialog.unreadCount,
+                        'unreadMentionCount': dialog.unreadMentionCount,
+                        'conversationTimestamp': dialog.conversationTimestamp,
+                        'last_time': dialog.conversationTimestamp,
+                        'notSpam': dialog.notSpam,
+                        'readOnly': dialog.readOnly,
+                        'archived': dialog.archived,
+                        'pinned': dialog.pinned,
+                        'disappearingMode': dialog.disappearingMode,
+                        'muted': dialog.muted,
+                        'mutedUntil': dialog.mutedUntil,
+                        'image': image,
+                        'lastMessage':messages,
+                        'contact': contacts,
+                    };
+                    if(Number(dialog.pinned) > 0){
+                        pinned.push(dataObj)
+                    }else{
+                        notPinned.push(dataObj)
+                    }
+                }));
+            }
+            
+            pinned.sort(function(a,b): any {
+                return Number(a.pinned) > Number(b.pinned) ? -1 : 1
+            });
+
+            await Promise.all(Object.values(pinned).map(async (pinnedDialog) => {
+                try {
+                    pinnedDialog.image = await getSession(this.session_id).profilePictureUrl(pinnedDialog.id)
+                } catch (e) {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', pinnedDialog.id) : '';
+                }
+            }));    
+
+            await Promise.all(Object.values(pinned).map(async (pinnedDialog) => {
+                try {
+                    pinnedDialog.contact = await this.WLredis.getContact(this.session_id,pinnedDialog.id);     
+                } catch (e) {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', pinnedDialog.id) : '';
+                }
+            }));    
+
+
+            notPinned.sort(function(a,b) {
+                let aHas: any = typeof a.lastMessage !== 'undefined';
+                let bHas: any = typeof b.lastMessage !== 'undefined';
+                return (bHas - aHas) || (aHas === true && Number(a.lastMessage.time) > Number(b.lastMessage.time) ? -1 : 1) || 0;
+            });
+            notPinned = notPinned.splice(0 , 50 - pinned.length)
+
+            await Promise.all(Object.values(notPinned).map(async (notPinnedDialog) => {
+                try {
+                    notPinnedDialog.image = await getSession(this.session_id).profilePictureUrl(notPinnedDialog.id)
+                } catch (e) {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', notPinnedDialog.id) : '';
+                }
+            })); 
+
+            await Promise.all(Object.values(notPinned).map(async (notPinnedDialog) => {
+                try {
+                    notPinnedDialog.contact = await this.WLredis.getContact(this.session_id,notPinnedDialog.id);     
+                } catch (e) {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', notPinnedDialog.id) : '';
+                }
+            }));    
+
+            this.response(res, 200, true, 'Dialogs Found !!!', {
+                pinned: pinned,
+                notPinned: notPinned,
+            })
+        } catch {
+            this.response(res, 500, false, 'Failed to load Dialogs.')
+        }
+    }
+
     async getChat(req, res) {
         try {
             let selected:WLConversationInterface[] = await this.WLredis.getChat(this.session_id, this.target)
