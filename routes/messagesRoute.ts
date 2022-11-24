@@ -147,6 +147,18 @@ router.post(
 )
 
 router.post(
+    '/sendPoll',
+    query('id').notEmpty(),
+    body('phone'),
+    body('chat').if(body('phone').not().exists()).notEmpty(),
+    body('body').notEmpty(),
+    body('options').notEmpty(),
+    requestValidator,
+    sessionValidator,
+    (req, res) => new Message(req, res).send(req, res,20)
+)
+
+router.post(
     '/sendReaction',
     query('id').notEmpty(),
     body('phone'),

@@ -32,8 +32,9 @@ export default class Session extends Helper {
     }
 
     del(req, res) {
-        
-        this.clearInstance(req, res);
+        (getSession(req.params.id)) ? getSession(req.params.id).logout() : "";
+        deleteSession(req.params.id, true);
+        this.response(res, 200, true, 'The session has been successfully deleted.');
     }
 
     clearInstance(req, res) {

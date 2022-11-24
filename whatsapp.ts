@@ -6,7 +6,9 @@ import makeWASocket, {
 	MessageRetryMap,
 	useMultiFileAuthState,
 } from '@adiwajshing/baileys'
+import getPollUpdateMessages from '@adiwajshing/baileys'
 import { Boom } from '@hapi/boom'
+import crypto from 'crypto';
 import {
 	readdir,
 	rmSync,
@@ -18,6 +20,8 @@ import response from './response'
 import WLRedis from './Models/WLRedis'
 import WLWebhook from './Models/WLWebhook'
 import Helper from './helper/Helper'
+// import { PollUpdateDecrypt } from './PollUpdateDecrypt'
+import PollUpdateDecrypt from './PollUpdateDecrypt'
 // External map to store retry counts of messages when decryption/encryption fails
 // keep this out of the socket itself, so as to prevent a message decryption/encryption loop across socket restarts
 const sessions = new Map()
@@ -178,19 +182,66 @@ const createSession = async (sessionId, res = null) => {
 					const m = events['messages.upsert']
 					try {
 						const msg = m.messages[0]
+						let option: string[] = [];
+						let options : any[] = []
+						let selected;
+
 						if (!msg.message) {
 							return
 						} // If there is no text or media message
-						console.log(msg.message)
+						if(msg.message.hasOwnProperty('pollCreationMessage')){
+							console.log(msg.message)
+						}
+						if(msg.message && msg.message.hasOwnProperty('pollUpdateMessage')){
+							let msgId = msg.message.pollUpdateMessage?.pollCreationMessageKey?.id;							
+							selected = await Redis.getMessage(sessionId,msgId)
+							let encKey = selected['metadata/.encKey'] ? selected['metadata/.encKey'] : selected['metadata.encKey']
+							let encPayload = msg.message?.pollUpdateMessage?.vote?.encPayload;
+							let encIv = msg.message?.pollUpdateMessage?.vote?.encIv;
+							let sessionVar = await getSession(sessionId);
+							let myPhone = sessionVar.user.id.indexOf(':') > 0 ?  sessionVar.user.id.split(':')[0]+'@s.whatsapp.net' : sessionVar.user.id;
+							let pollMsgSender = selected.fromMe == 'true' ? myPhone : selected.remoteJid;
+							let voteMsgSender = msg.key.fromMe == true ? myPhone : msg.key.remoteJid;
+							let encKeyBuffer:any = Buffer.from(encKey, 'base64')
+							Object.keys(selected).forEach((item) =>{
+								if(item.includes('metadata.options.')){
+									options.push(selected[item]);
+								}
+							})
+
+							if(msgId && voteMsgSender && encPayload && encIv && msgId){
+								try{
+									const hash = await new PollUpdateDecrypt().decryptPollMessageRaw(
+								        encKeyBuffer,
+								        encPayload,
+								        encIv,
+								        pollMsgSender,
+								        msgId,
+								        voteMsgSender, 
+									);
+									
+									option = await new PollUpdateDecrypt().comparePollMessage(options, hash)
+								}catch(e){
+									console.log('error on PollUpdateDecrypt', e);
+								}
+							}	
+						}
 						if(msg.message.hasOwnProperty('senderKeyDistributionMessage')){
 							delete msg.message['senderKeyDistributionMessage']
 						}
 						if(msg.message.hasOwnProperty('messageContextInfo')){
 							delete msg.message['messageContextInfo']
 						}
+
+						let optionObj = {
+							selectedOptions: option,
+							pollOptions: options,
+							pollMessage: selected,
+						};
+
 						const messageType = Object.keys(msg.message)[0] // Get what type of message it is -- text, image, video
 						if (msg.key.remoteJid !== 'status@broadcast' && messageType != 'protocolMessage') {
-							const messageObj = await WLHelper.reformatMessageObj(sessionId, msg, messageType, sock)
+							const messageObj = await WLHelper.reformatMessageObj(sessionId, msg, messageType, sock,optionObj)
 							if (messageObj) {
 								await Webhook.MessageUpsert(sessionId, messageObj);
 							}
@@ -211,14 +262,23 @@ const createSession = async (sessionId, res = null) => {
 					}
 				}
 
-				// Dialog Last Time updates
+				// Dialog Last updates
 				if (events['chats.update']) {
 					const m = events['chats.update'];
-					try {
-						(m[0].id !== 'status@broadcast') ? await Webhook.ChatsUpdate(sessionId, m[0]) : '';
-					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('chats.update error', e) : '';
-					}
+					m.forEach(async function(item){
+						// try {
+						// 	console.log(m[0]);
+						// 	(m[0].id !== 'status@broadcast') ? await Webhook.ChatsUpdate(sessionId, m[0]) : '';
+						// } catch (e) {
+						// 	(process.env.DEBUG_MODE == 'true') ? console.log('chats.update error', e) : '';
+						// }
+						try {
+							(item.id !== 'status@broadcast') ? await Webhook.ChatsUpdate(sessionId, item) : '';
+						} catch (e) {
+							(process.env.DEBUG_MODE == 'true') ? console.log('chats.update error', e) : '';
+						}
+					});
+					
 				}
 
 				if(events['labels.set']){
@@ -295,6 +355,7 @@ const createSession = async (sessionId, res = null) => {
 						(process.env.DEBUG_MODE == 'true') ? console.log('contacts.upsert error', e) : '';
 					}
 				}
+
 				if (events['contacts.update']) {
 					try {
 						await Webhook.updateContact(sessionId, events['contacts.update'][0]);

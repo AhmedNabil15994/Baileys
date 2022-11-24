@@ -30,14 +30,12 @@ export default class Helper {
         return join('sessions', sessionId ? (sessionId.startsWith('md_') ? sessionId : sessionId + '.json') : '')
     }
 
-
     formatPhone = (phone) => {
         if (phone.endsWith('@s.whatsapp.net')) {
             return phone
         }
 
         let formatted = phone.replace(/\D/g, '')
-
         return (formatted += '@s.whatsapp.net')
     }
 
@@ -79,7 +77,6 @@ export default class Helper {
         }
 
         let formatted = group.replace(/[^\d-]/g, '')
-
         return (formatted += '@g.us')
     }
 
@@ -124,18 +121,6 @@ export default class Helper {
         return false;
     }
 
-    formatButtons = (buttons) => {
-        return buttons.map((btn) => {
-            return {
-                buttonId: 'id' + btn.id,
-                buttonText: {
-                    displayText: btn.title,
-                },
-                type: 1,
-            }
-        })
-    }
-
     mimeType(url) {
         const pathObj = parse(url, true)
         const mimeType = lookup(pathObj.pathname)
@@ -176,6 +161,25 @@ export default class Helper {
         return text
     }
 
+    formatButtons = (buttons) => {
+        return buttons.map((btn) => {
+            return {
+                buttonId: 'id' + btn.id,
+                buttonText: {
+                    displayText: btn.title,
+                },
+                type: 1,
+            }
+        })
+    }
+
+    reformatOptions = (options) => {
+        return options.map((option) => {
+            return {
+                optionName: option,
+            }
+        })
+    }
 
     formatButtonsResponse(buttons) {
         return buttons.map((btn) => {
@@ -189,6 +193,16 @@ export default class Helper {
                 return {}
             }
             
+        })
+    }
+
+    formatOptionsResponse(options) {
+        return options.map((option) => {
+            if(option.hasOwnProperty('optionName')){
+                return option.optionName
+            }else{
+                return '';
+            }
         })
     }
 
@@ -293,11 +307,8 @@ export default class Helper {
         return time;
     }
 
-
     async getMessageInfo(msgObj,messageType,time,newSessionId,sock){
         let fixedType = '';
-
-
         let dataObj ={
             messageType: this.getMessageTypeText(msgObj,messageType),
             metadata:{}
@@ -313,7 +324,6 @@ export default class Helper {
         }
 
         let detailsObj = await this.getMessageTypeDetails(msgObj,messageType,time,newSessionId,sock);
-
         return {
             ...dataObj,
             ...detailsObj,
@@ -376,8 +386,6 @@ export default class Helper {
         }
 
         await this.downloadMessageFile(msg,path,sock);
-
-
         return {
             body: process.env.IMAGE_URL + '/messages/' + newSessionId + '/' + msg.key.id + '.' + extension,
             fileName: fileName,
@@ -479,6 +487,10 @@ export default class Helper {
             text = 'template_buttons_response'
         }else if (msgObj.message && msgObj.message.listResponseMessage){
             text = 'list_response'
+        }else if (msgObj.message && msgObj.message.pollCreationMessage){
+            text = 'pollMessage'
+        }else if (msgObj.message && msgObj.message.pollUpdateMessage){
+            text = 'poll_vote'
         }else{
             text = 'text';
         }
@@ -786,8 +798,11 @@ export default class Helper {
             dataObj.metadata['sellerJid'] = msgObj.message.productMessage.businessOwnerJid ? msgObj.message.productMessage.businessOwnerJid : msgObj.key.remoteJid;    
             dataObj.metadata['price'] = Number(msgObj.message.productMessage.product.priceAmount1000.low )/ 1000;    
             dataObj.metadata['currency'] = msgObj.message.productMessage.product.currencyCode;
+        }else if (msgObj.message && msgObj.message.pollCreationMessage && msgObj.message.pollCreationMessage.options) {
+            dataObj.body = msgObj.message.pollCreationMessage.name;
+            dataObj.metadata['options'] = this.formatOptionsResponse(msgObj.message.pollCreationMessage.options);    
+            dataObj.metadata['selectableOptionsCount'] = msgObj.message.pollCreationMessage.selectableOptionsCount;    
         }
-
         return dataObj;
     }
 
@@ -834,8 +849,9 @@ export default class Helper {
         let replyObj = {}
         let type = input.messageType;
 
-        // 1 == Text ,  2 == Image , 3 == Video , 4 == Audio , 5 == Document , 6 == Sticker , 7 == Gif , 8 == Location , 9 == Contact , 
-        // 10 == Disappearing , 11 == Mention , 12 == Reaction , 13 == Buttons , 14 == Template , 15 == List  
+       // 1  == Text ,  2 == Image , 3 == Video , 4 == Audio , 5 == Document , 6 == Sticker , 7 == Gif , 8 == Location , 
+       // 9  == Contact, 10 == Disappearing , 11 == Mention , 13 == Buttons , 14 == Template , 15 == List, 16 == Link With Preview,  
+       // 17 == Group Invitation, 18 == Product , 19 == Catalog  , 20 == Poll
         
         if(type == 1){
             let message = input.messageData.body;
@@ -986,6 +1002,14 @@ export default class Helper {
                 title:input.messageData.title,
                 previewType:2,
             }
+        }else if(type == 20){
+            replyObj = {
+                poll:{
+                    name:input.messageData.body,
+                    values: this.reformatOptions(input.messageData.options),
+                    selectableOptionsCount: input.messageData.selectableOptionsCount,                    
+                }
+            }
         }
         return replyObj;
     }
@@ -1069,7 +1093,7 @@ export default class Helper {
         return {message:message,messageTimestamp:Number(msg.time)};
     }
 
-    async reformatMessageObj(sessionId, msg, messageType, sock) {
+    async reformatMessageObj(sessionId, msg, messageType, sock , options={}) {
         require('events').EventEmitter.defaultMaxListeners = 100000;
         var newSessionId = sessionId.replace('wlChannel', '')
 
@@ -1096,6 +1120,48 @@ export default class Helper {
         let dataObj= {
             ...messageObj,
             ...extraDataObj,
+        }
+
+        if(msg.message && msg.message.hasOwnProperty('pollUpdateMessage')){
+            let quotedMessageType = "pollMessage";
+            if(options && options.hasOwnProperty('pollMessage') && options.hasOwnProperty('pollOptions')){
+                let newMsgObj = {
+                    key: {
+                        remoteJid:  msg.message.pollUpdateMessage.pollCreationMessageKey.remoteJid,
+                        fromMe: true,
+                        id:  msg.message.pollUpdateMessage.pollCreationMessageKey.id,
+                    },
+                    message:  {
+                        pollCreationMessage:{
+                            name: options['pollMessage']['body'],
+                            options: options['pollOptions'],
+                            selectableOptionsCount: options['pollMessage']['metadata.selectableOptionsCount'],
+                            contextInfo:{
+                                disappearingMode:{
+                                    initiator:0
+                                }
+                            }
+                        }
+                    },
+                }
+            
+                dataObj['metadata'] = {
+                    quotedMessageId: newMsgObj.key.id,
+                    remoteJid: newMsgObj.key.remoteJid,
+                    fromMe: newMsgObj.key.fromMe,
+                    quotedMessage: await this.getMessageInfo(newMsgObj,'pollMessage',time,newSessionId,sock),
+                }
+                dataObj['metadata']['quotedMessage']['metadata']['options'] = options['pollOptions']
+            }
+            if(options && options.hasOwnProperty('selectedOptions') && options['selectedOptions'].length >= 1){
+                dataObj.messageType = 'poll_vote';
+                dataObj.body = options['selectedOptions'].toString();
+                dataObj.metadata['selectedOptions'] = options['selectedOptions'];
+            }else{
+                dataObj.messageType = 'poll_unvote';
+                dataObj.body = 'poll unvoted';
+                dataObj.metadata['selectedOptions'] = options['selectedOptions'];
+            }
         }
 
         console.log('--------------------');
@@ -1294,6 +1360,14 @@ export default class Helper {
                 matchedText: input.url,
                 title:input.title,
                 previewType:2,
+            }
+        }else if(type == 20){
+            msgObj.message = {
+                poll:{
+                    name:input.body,
+                    values: this.reformatOptions(input.options),
+                    selectableOptionsCount: input.selectableOptionsCount,                    
+                }
             }
         }
        

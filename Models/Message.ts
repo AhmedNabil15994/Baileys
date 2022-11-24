@@ -124,6 +124,17 @@ export default class Message extends Helper {
                 //     this.response(res, 200, true, 'The message has been successfully sent.', result)
                 // }
                 const result = await this.session.sendMessage(this.target, messageData.message, optionObj)
+                if(type == 20 && result && result.hasOwnProperty('key')){
+                    let encKey = result.message.messageContextInfo.messageSecret.toString('base64');
+                    setTimeout(async() =>{
+                        const selected = await this.WLredis.getMessage(this.session_id, result.key.id)
+                        if (!selected) {
+                            return this.response(res, 400, false, 'This message does not exist.')
+                        }
+                        selected['metadata.encKey'] = encKey
+                        await this.WLredis.setMessage(this.session_id, selected);
+                    }, 3000)   
+                }
                 this.response(res, 200, true, 'The message has been successfully sent.', result)
             }else{
                 messageKeyData.key['id'] = await generateMessageID(); 
@@ -236,6 +247,7 @@ export default class Message extends Helper {
                     inviteLinkGroupTypeV2: 0,
                     jpegThumbnail:  thumb.thumbnail,
                 }
+                console.log(catalogMessage)
                 const result = await this.session.sendMessage(this.target, catalogMessage, quotedObj)
                 this.response(res, 200, true, 'The message has been successfully replied.', result)
             }else{
@@ -352,6 +364,7 @@ export default class Message extends Helper {
                 }
                 const result = await this.session.sendMessage(this.formatPhone(phone), catalogMessage, {})
             }else{
+                console.log(replyObj)
                 const result = await this.session.sendMessage(this.formatPhone(phone), replyObj, newObj)
             }
         } catch (error) {

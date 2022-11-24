@@ -470,9 +470,9 @@ export default class WLRedis extends Helper {
     }
 
     async updateMessage(session_id, message) {
-        let statusInt = message.update.status
+        let statusInt = message.hasOwnProperty('update') ?  message.update.status :  message.status
         let statusText = this.formatStatusText(statusInt)
-        let message_id = message.key.id;
+        let message_id = message.hasOwnProperty('key') ? message.key.id : message.id;
         try {
             let messageObj = await this.redis.hgetall(`${session_id}:messages:${message_id}`);
             (process.env.DEBUG_MODE == 'true') ? console.log('WLRedis updateMessage') : '';
