@@ -334,7 +334,7 @@ export default class Groups extends Helper {
         const messageId = req.body.messageId
 
         try {
-            const selected = await this.WLredis.getMessage(this.session_id, messageId)
+            const selected = await this.WLredis.getOne(this.session_id, messageId,'messages')
             if (!selected) {
                 return this.response(res, 400, false, 'This message does not exist.')
             }
@@ -374,7 +374,7 @@ export default class Groups extends Helper {
         }
 
         if(req.body.messageId){
-            const selected = await this.WLredis.getMessage(this.session_id, req.body.messageId)
+            const selected = await this.WLredis.getOne(this.session_id, req.body.messageId,'messages')
             if (!selected) {
                 return this.response(res, 400, false, 'This message does not exist.')
             }

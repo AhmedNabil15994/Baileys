@@ -148,7 +148,7 @@ export default class Instance extends Helper {
 
     async fetchContacts(req, res) {
         try {
-            let contacts: WLContactInterface[] = await this.WLredis.getContacts(this.session_id);
+            let contacts: WLContactInterface[] = await this.WLredis.getData(this.session_id,'contacts');
             let contactsArr: WLContactInterface[] = []
             await Promise.all(Object.values(contacts).map(async (contact) => {
                 try {
@@ -169,7 +169,7 @@ export default class Instance extends Helper {
 
     async getContactByID(req, res) {
         try {
-            let selected:WLContactInterface[] = await this.WLredis.getContact(this.session_id,this.target)
+            let selected:WLContactInterface[] = await this.WLredis.getOne(this.session_id,this.target,'contacts')
             let image = '';
             let chatObj;
             if(selected.hasOwnProperty('id')){

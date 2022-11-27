@@ -18,7 +18,7 @@ export default class WLWebhook extends Helper {
 
     async MessageUpsert(sessionId, message) {
         try {
-            await this.Redis.setMessage(sessionId, message);
+            await this.Redis.setOne(sessionId, message,'messages');
             message.status = message.status - 1;
             let newMessage = JSON.stringify(message)
             await this.needle.post(
@@ -97,7 +97,7 @@ export default class WLWebhook extends Helper {
                     (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook MessageUpdates : ' + body) : '';
                 }
             )
-            await this.Redis.updateMessage(sessionId, message);
+            await this.Redis.updateOne(sessionId, message,'messages');
         } catch (error) {
             console.log('WLWebhook MessageUpdates : ' + error)
         }
@@ -105,7 +105,7 @@ export default class WLWebhook extends Helper {
 
     async ChatsUpdate(sessionId, chat) {
         try {
-            await this.Redis.updateChat(sessionId, chat);
+            await this.Redis.updateOne(sessionId, chat,'chats');
             await this.needle.post(
                 this.base_url,
                 {
@@ -130,7 +130,7 @@ export default class WLWebhook extends Helper {
     }
 
     async ChatsDelete(sessionId, chat) {
-        await this.Redis.deleteChat(sessionId, chat);
+        await this.Redis.deleteOne(sessionId, chat,'chats');
         await this.needle.post(
             this.base_url,
             {
@@ -156,7 +156,7 @@ export default class WLWebhook extends Helper {
 
     async setNewContact(sessionId, contact) {
         try {
-            await this.Redis.setContact(sessionId, contact);
+            await this.Redis.setOne(sessionId, contact,'contacts');
         } catch (error) {
             console.log('WLWebhook SetContact : ' + error)
         }
@@ -164,7 +164,7 @@ export default class WLWebhook extends Helper {
 
     async updateContact(sessionId, contact) {
         try {
-            await this.Redis.updateContact(sessionId, contact);
+            await this.Redis.updateOne(sessionId, contact,'contacts');
         } catch (error) {
             console.log('WLWebhook SetContact : ' + error)
         }
@@ -172,7 +172,7 @@ export default class WLWebhook extends Helper {
 
     async setProduct(sessionId, product) {
         try {
-            await this.Redis.setProduct(sessionId, product);
+            await this.Redis.setOne(sessionId, product,'products');
         } catch (error) {
             console.log('WLWebhook SetProduct : ' + error)
         }
@@ -180,7 +180,7 @@ export default class WLWebhook extends Helper {
 
     async updateProduct(sessionId, product) {
         try {
-            await this.Redis.updateProduct(sessionId, product);
+            await this.Redis.updateOne(sessionId, product,'products');
         } catch (error) {
             console.log('WLWebhook UpdateProduct : ' + error)
         }
@@ -188,7 +188,7 @@ export default class WLWebhook extends Helper {
 
     async deleteProduct(sessionId, product_id) {
         try {
-            await this.Redis.deleteProduct(sessionId, product_id);
+            await this.Redis.deleteOne(sessionId, product_id,'products');
         } catch (error) {
             console.log('WLWebhook DeleteProduct : ' + error)
         }
@@ -196,7 +196,7 @@ export default class WLWebhook extends Helper {
 
     async setLabel(sessionId, label) {
         try {
-            await this.Redis.setLabel(sessionId, label);
+            await this.Redis.setOne(sessionId, label,'labels');
         } catch (error) {
             console.log('WLWebhook setLabel : ' + error)
         }
@@ -204,7 +204,7 @@ export default class WLWebhook extends Helper {
 
     async updateLabel(sessionId, label) {
         try {
-            await this.Redis.updateLabel(sessionId, label);
+            await this.Redis.updateOne(sessionId, label,'labels');
         } catch (error) {
             console.log('WLWebhook updateLabel : ' + error)
         }
@@ -212,7 +212,7 @@ export default class WLWebhook extends Helper {
 
     async deleteLabel(sessionId, label_id) {
         try {
-            await this.Redis.deleteLabel(sessionId, label_id);
+            await this.Redis.deleteOne(sessionId, label_id,'labels');
         } catch (error) {
             console.log('WLWebhook deleteLabel : ' + error)
         }
@@ -220,7 +220,7 @@ export default class WLWebhook extends Helper {
 
     async setReply(sessionId, reply) {
         try {
-            await this.Redis.setReply(sessionId, reply);
+            await this.Redis.setOne(sessionId, reply,'replies');
         } catch (error) {
             console.log('WLWebhook setReply : ' + error)
         }
@@ -228,7 +228,7 @@ export default class WLWebhook extends Helper {
 
     async updateReply(sessionId, reply) {
         try {
-            await this.Redis.updateReply(sessionId, reply);
+            await this.Redis.updateOne(sessionId, reply,'replies');
         } catch (error) {
             console.log('WLWebhook updateReply : ' + error)
         }
@@ -236,7 +236,7 @@ export default class WLWebhook extends Helper {
 
     async deleteReply(sessionId, reply_id) {
         try {
-            await this.Redis.deleteReply(sessionId, reply_id);
+            await this.Redis.deleteOne(sessionId, reply_id,'replies');
         } catch (error) {
             console.log('WLWebhook deleteReply : ' + error)
         }

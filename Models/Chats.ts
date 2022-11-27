@@ -27,7 +27,7 @@ export default class Chats extends Helper {
 
     async fetchDialogs(req, res) {
         try {
-            let dialogs: WLConversationInterface[] = await this.WLredis.getChats(this.session_id);
+            let dialogs: WLConversationInterface[] = await this.WLredis.getData(this.session_id,'chats');
             let dialogsArr: WLConversationInterface[] = []
             let image = '';
             if(dialogs.length){
@@ -66,7 +66,7 @@ export default class Chats extends Helper {
 
     async myChats(req, res) {
         try {
-            let dialogs: any[] = await this.WLredis.getChats(this.session_id);
+            let dialogs: any[] = await this.WLredis.getData(this.session_id,'chats');
             let pinned: any[] = []
             let notPinned: any[] = []
             let image = '';
@@ -120,7 +120,7 @@ export default class Chats extends Helper {
 
             await Promise.all(Object.values(pinned).map(async (pinnedDialog) => {
                 try {
-                    pinnedDialog.contact = await this.WLredis.getContact(this.session_id,pinnedDialog.id);     
+                    pinnedDialog.contact = await this.WLredis.getOne(this.session_id,pinnedDialog.id,'contacts');     
                 } catch (e) {
                     (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', pinnedDialog.id) : '';
                 }
@@ -144,7 +144,7 @@ export default class Chats extends Helper {
 
             await Promise.all(Object.values(notPinned).map(async (notPinnedDialog) => {
                 try {
-                    notPinnedDialog.contact = await this.WLredis.getContact(this.session_id,notPinnedDialog.id);     
+                    notPinnedDialog.contact = await this.WLredis.getOne(this.session_id,notPinnedDialog.id,'contacts');     
                 } catch (e) {
                     (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', notPinnedDialog.id) : '';
                 }
@@ -161,7 +161,7 @@ export default class Chats extends Helper {
 
     async getChat(req, res) {
         try {
-            let selected:WLConversationInterface[] = await this.WLredis.getChat(this.session_id, this.target)
+            let selected:WLConversationInterface[] = await this.WLredis.getOne(this.session_id,this.target,'chats')
             let image = '';
             let chatObj;
             if(selected.hasOwnProperty('id')){

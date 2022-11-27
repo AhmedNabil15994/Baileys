@@ -95,9 +95,8 @@ export default class Users extends Helper {
             const status = await this.session.fetchBlocklist()
             return this.response(res, 200, true, 'Block list generated Successfully',status)
         } catch {
-            return this.response(res, 500, false, 'Failed to block user.')
+            return this.response(res, 500, false, 'Failed to get block list.')
         }
-        
     }
 
     async blockUser(req, res) {
@@ -161,8 +160,6 @@ export default class Users extends Helper {
             return this.response(res, 500, false, 'Failed to reject call.')
         }
     }
-
-    
 
     //sendReceipt
     //sendReceipts

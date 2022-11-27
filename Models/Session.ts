@@ -13,8 +13,8 @@ export default class Session extends Helper {
         this.WLRedis = new WLRedis();
     }
 
-    find(res) {
-        this.response(res, 200, true, 'Session found.')
+    find(req,res) {
+        (getSession(req.params.id)) ? this.response(res, 200, true, 'Session found.') : this.response(res, 200, true, 'Session Not found.');
     }
 
     status(res) {
@@ -38,11 +38,16 @@ export default class Session extends Helper {
     }
 
     clearInstance(req, res) {
-        (getSession(req.params.id)) ? getSession(req.params.id).logout() : "";
-        deleteSession(req.params.id, true);
-        this.WLRedis.deleteSession(req.params.id);
-        createSession(req.params.id, res)
+        (getSession(req.body.id)) ? getSession(req.body.id).logout() : "";
+        deleteSession(req.body.id, true);
+        this.WLRedis.deleteSession(req.body.id);
+        createSession(req.body.id, res)
         this.response(res, 200, true, 'The session has been successfully deleted.');
+    }
+
+    clearData(req, res) {
+        this.WLRedis.deleteSession(req.body.id);
+        this.response(res, 200, true, 'The session data has been successfully deleted.');
     }
 
 }

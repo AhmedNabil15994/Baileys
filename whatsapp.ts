@@ -90,7 +90,7 @@ const createSession = async (sessionId, res = null) => {
 			msgRetryCounterMap,
 			getMessage: async key => {
 				(process.env.DEBUG_MODE == 'true') ? console.log('getMessage Problem :', key) : '';
-				const msg = await Redis.getMessage(sessionId, key.id);
+				const msg = await Redis.getOne(sessionId, key.id,'messages');
 				if (msg) {
     				(process.env.DEBUG_MODE == 'true') ? console.log('getMessage Problem Fixed  Message is :', msg.body) : '';
 					return {
@@ -151,7 +151,7 @@ const createSession = async (sessionId, res = null) => {
 				if (events['messages.set']) {
 					const { messages } = events['messages.set']
 					try {
-						await Redis.setMessages(sessionId, messages, sock);
+						await Redis.setData(sessionId, messages,'messages',sock);
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('messages.set error', e) : '';
 					}
@@ -161,7 +161,7 @@ const createSession = async (sessionId, res = null) => {
 				if (events['chats.set']) {
 					const { chats } = events['chats.set']
 					try {
-						await Redis.setChats(sessionId, chats);
+						await Redis.setData(sessionId, chats,'chats');
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('chats.set error', e) : '';
 					}
@@ -171,7 +171,7 @@ const createSession = async (sessionId, res = null) => {
 				if (events['contacts.set']) {
 					const { contacts } = events['contacts.set']
 					try {
-						await Redis.setContacts(sessionId, contacts);
+						await Redis.setData(sessionId, contacts,'contacts');
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('contacts.set error', e) : '';
 					}
@@ -189,12 +189,10 @@ const createSession = async (sessionId, res = null) => {
 						if (!msg.message) {
 							return
 						} // If there is no text or media message
-						if(msg.message.hasOwnProperty('pollCreationMessage')){
-							console.log(msg.message)
-						}
+						console.log(msg.message)
 						if(msg.message && msg.message.hasOwnProperty('pollUpdateMessage')){
-							let msgId = msg.message.pollUpdateMessage?.pollCreationMessageKey?.id;							
-							selected = await Redis.getMessage(sessionId,msgId)
+							let msgId = msg.message.pollUpdateMessage?.pollCreationMessageKey?.id;	
+							selected = await Redis.getOne(sessionId, msgId,'messages')				
 							let encKey = selected['metadata/.encKey'] ? selected['metadata/.encKey'] : selected['metadata.encKey']
 							let encPayload = msg.message?.pollUpdateMessage?.vote?.encPayload;
 							let encIv = msg.message?.pollUpdateMessage?.vote?.encIv;
@@ -219,13 +217,13 @@ const createSession = async (sessionId, res = null) => {
 								        msgId,
 								        voteMsgSender, 
 									);
-									
 									option = await new PollUpdateDecrypt().comparePollMessage(options, hash)
 								}catch(e){
-									console.log('error on PollUpdateDecrypt', e);
+									(process.env.DEBUG_MODE == 'true') ? console.log('error on PollUpdateDecrypt', e.message) : '';
 								}
 							}	
 						}
+
 						if(msg.message.hasOwnProperty('senderKeyDistributionMessage')){
 							delete msg.message['senderKeyDistributionMessage']
 						}

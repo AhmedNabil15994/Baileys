@@ -431,7 +431,8 @@ export default class Helper {
                 text = 'replyMessage'
             }else if(
                 msgObj.message.extendedTextMessage.contextInfo != null &&
-                msgObj.message.extendedTextMessage.contextInfo.isForwarded != null
+                msgObj.message.extendedTextMessage.contextInfo.hasOwnProperty('isForwarded') &&
+                msgObj.message.extendedTextMessage.contextInfo.isForwarded >= 0
             ){
                 text = 'forwardMessage'
             }else if(
@@ -440,12 +441,13 @@ export default class Helper {
             ){
                 text = 'groupInvitationMessage'
             }else if(
-                msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl')
+                msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
+                msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail')
             ){
                 text = 'catalogMessage'
             }else if(
                 msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
-                msgObj.message.extendedTextMessage.previewType === 0
+                msgObj.message.extendedTextMessage.previewType == 0
             ){
                 text = 'linkWithPreview'
             }else{
@@ -559,7 +561,7 @@ export default class Helper {
                     matchedText: msgObj.message.extendedTextMessage.matchedText,
                     title: msgObj.message.extendedTextMessage.title,
                     code: msgObj.message.extendedTextMessage.matchedText.replace('https://chat.whatsapp.com/',''),
-                    expiration: msgObj.message.extendedTextMessage.mediaKeyTimestamp.low,
+                    expiration: 0,
                 }
             }else if(
                 msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl')

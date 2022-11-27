@@ -6,6 +6,7 @@ import { getSession } from "../whatsapp";
 import WLRedis from "./WLRedis";
 import WLWebhook from './WLWebhook'
 import axios from 'axios'
+import crypto from 'crypto'
 import {v4 as uuidv4} from 'uuid';
 
 export default class Business extends Helper {
@@ -105,7 +106,7 @@ export default class Business extends Helper {
             }
 
             const products = await this.session.getCatalog(userId)
-            await this.WLredis.setProducts(this.session_id, products.products);
+            await this.WLredis.setData(this.session_id, products.products,'products');
             products.products.forEach( async (item) => {
                 item.price = item.price / 1000
             });
@@ -125,7 +126,7 @@ export default class Business extends Helper {
                 return this.response(res, 400, false, "This profile isn't business account.")
             }
 
-            let productObj = await this.WLredis.getProduct(this.session_id, req.body.productId);
+            let productObj = await this.WLredis.getOne(this.session_id, req.body.productId,'products');
             productObj.price = productObj.price / 1000
             return this.response(res, 200, true, 'Product Data Generated Successfully !!', productObj)
         } catch (ex) {
@@ -171,7 +172,7 @@ export default class Business extends Helper {
                 return this.response(res, 400, false, "This profile isn't business account.")
             }
 
-            let productObj = await this.WLredis.getProduct(this.session_id, req.body.productId);
+            let productObj = await this.WLredis.getOne(this.session_id, req.body.productId,'products');
             let imageObj = {}
             if(req.body.image){
                 imageObj['url'] = req.body.image;
@@ -251,24 +252,30 @@ export default class Business extends Helper {
                 return this.response(res, 400, false, 'This chat does not exist.')
             }
 
-            let productObj = await this.WLredis.getProduct(this.session_id, req.body.productId);
-            if(productObj){
-                const result = await this.session.sendMessage(this.target, {
-                    product:{
-                        productId: req.body.productId, 
-                        title: productObj.name, 
-                        description: productObj.description, 
-                        priceAmount1000: Number(productObj.price) * 1000,
-                        currencyCode: productObj.currency,
-                        productImage:{
-                            url:productObj['imageUrls.original'],
-                        },
+            let productObj = await this.WLredis.getOne(this.session_id, req.body.productId,'products');
+            if(!productObj.hasOwnProperty('id')){
+                let productsArr = await this.session.getCatalog(userId)
+                if(productsArr){
+                    await this.WLredis.setData(this.session_id, productsArr.products,'products');
+                }else{
+                    return this.response(res, 500, false, 'Failed to Send Product.')
+                }
+            }
+
+            const result = await this.session.sendMessage(this.target, {
+                product:{
+                    productId: req.body.productId, 
+                    title: productObj.name, 
+                    description: productObj.description, 
+                    priceAmount1000: Number(productObj.price) * 1000,
+                    currencyCode: productObj.currency,
+                    productImage:{
+                        url: productObj['imageUrls.original'] ? productObj['imageUrls.original'] : productObj['imageUrls']['original'],
                     },
-                    businessOwnerJid: this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0]+'@s.whatsapp.net' : this.session.user.id ,
-                }, {})
-                return this.response(res, 200, true, 'Product has been Sent Successfully !!', result)
-            }            
-            return this.response(res, 500, false, 'Failed to Send Product.')
+                },
+                businessOwnerJid: this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0]+'@s.whatsapp.net' : this.session.user.id ,
+            }, {})
+            return this.response(res, 200, true, 'Product has been Sent Successfully !!', result)          
         } catch (ex) {
             console.log(ex)
             return this.response(res, 500, false, 'Failed to Send Product.')
@@ -290,8 +297,17 @@ export default class Business extends Helper {
                 return this.response(res, 400, false, 'This chat does not exist.')
             }
 
-            let products =  await this.WLredis.getProducts(this.session_id);
-            let imageURL = products[0]['imageUrls.original'];
+            let products = await this.WLredis.getData(this.session_id,'products');
+            if(products.length == 0){
+                let productsArr = await this.session.getCatalog(userId)
+                if(productsArr){
+                    await this.WLredis.setData(this.session_id, productsArr.products,'products');
+                    products = productsArr.products
+                }else{
+                    return this.response(res, 500, false, 'Failed to Send Catalog.')
+                }
+            }
+            let imageURL = products[0]['imageUrls.original'] ? products[0]['imageUrls.original'] : products[0]['imageUrls']['original'];
 
             let responseFile = await axios.get(imageURL, {responseType: 'arraybuffer'})
             let thumb = await generateThumbnail(responseFile.data,'image',{});
@@ -315,7 +331,7 @@ export default class Business extends Helper {
 
     async getLabels(req, res) {
         try {
-            const labels = await this.WLredis.getLabels(this.session_id);
+            const labels = await this.WLredis.getData(this.session_id,'labels');
             return this.response(res, 200, true, 'User Labels Data Generated Successfully !!', labels)
         } catch (ex) {
             console.log(ex)
@@ -394,7 +410,7 @@ export default class Business extends Helper {
                 return this.response(res, 400, false, "This profile isn't business account.")
             }
 
-            const selected = await this.WLredis.getMessage(this.session_id, req.body.messageId)
+            const selected = await this.WLredis.getOne(this.session_id,req.body.messageId,'messages');
             if (!selected) {
                 return this.response(res, 400, false, 'This message does not exist.')
             }
@@ -431,7 +447,7 @@ export default class Business extends Helper {
                 return this.response(res, 400, false, "This profile isn't business account.")
             }
 
-            const selected = await this.WLredis.getMessage(this.session_id, req.body.messageId)
+            const selected = await this.WLredis.getOne(this.session_id,req.body.messageId,'messages');
             if (!selected) {
                 return this.response(res, 400, false, 'This message does not exist.')
             }
@@ -510,7 +526,7 @@ export default class Business extends Helper {
 
     async getQuickReplies(req, res) {
         try {
-            const quickReplies = await this.WLredis.getReplies(this.session_id);
+            const quickReplies = await this.WLredis.getData(this.session_id,'replies');
             return this.response(res, 200, true, 'User Quick Replies Data Generated Successfully !!', quickReplies)
         } catch (ex) {
             console.log(ex)
@@ -520,15 +536,13 @@ export default class Business extends Helper {
 
     async createQuickReply(req, res) {
         const target = this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0]+'@s.whatsapp.net' : this.session.user.id 
-        const reply_id = uuidv4().toUpperCase()
-
+        const reply_id = crypto.randomUUID().toUpperCase()
         try {
-
             const status = await this.session.chatModify(
                 { quickReply:{id:reply_id,message:req.body.message,shortcut:req.body.shortcut,deleted:false} 
             }, target)
-            // await this.WLWebhook.setReply(res.locals.sessionId, {id:reply_id,message:req.body.message,shortcut:req.body.shortcut,deleted:false});
-            // let replyObj = await this.WLredis.getReply(this.session_id,reply_id)
+            // await this.WLWebhook.setReply(res.locals.sessionId, {id:reply_id,message:req.body.message,shortcut:req.body.shortcut,deleted:false});            
+            // let replyObj = await this.WLredis.getOne(this.session_id,reply_id,'replies')
             // if(replyObj){
             //     await this.WLWebhook.deleteReply(this.session_id, reply_id);
             // }
@@ -562,7 +576,7 @@ export default class Business extends Helper {
         const target = this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0]+'@s.whatsapp.net' : this.session.user.id 
         const reply_id = req.body.reply_id
         try {
-            let replyObj = await this.WLredis.getReply(this.session_id,reply_id)
+            let replyObj = await this.WLredis.getOne(this.session_id,reply_id,'replies')
             if(replyObj){
                 replyObj.deleted = true
                 const status = await this.session.chatModify({ quickReply: replyObj }, target)

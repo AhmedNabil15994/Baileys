@@ -32,7 +32,7 @@ export default class Message extends Helper {
     
     async fetchMessages(req, res) {
         try {
-            let messages = await this.WLredis.getMessages(this.session_id);
+            let messages = await this.WLredis.getData(this.session_id,'messages');
             await messages.sort(function(a,b): any {
                 return Number(b.time) > Number(a.time) ? -1 : 1
             });
@@ -49,7 +49,7 @@ export default class Message extends Helper {
 
     async findMessage(req, res) {
         try {
-            const selected = await this.WLredis.getMessage(this.session_id, req.body.messageId)
+            const selected = await this.WLredis.getOne(this.session_id, req.body.messageId,'messages')
             if (!selected) {
                 return this.response(res, 400, false, 'This message does not exist.')
             }
@@ -86,7 +86,7 @@ export default class Message extends Helper {
 
         // For Reaction Messages
         if(type == 12 && req.body.messageId){
-            let selected = await this.WLredis.getMessage(this.session_id, req.body.messageId)
+            let selected = await this.WLredis.getOne(this.session_id, req.body.messageId,'messages')
             if(selected && selected.hasOwnProperty('id') && messageData.message.hasOwnProperty('react')){
                 messageData.message['react']['key'] = {
                     remoteJid: selected.remoteJid,
@@ -127,12 +127,12 @@ export default class Message extends Helper {
                 if(type == 20 && result && result.hasOwnProperty('key')){
                     let encKey = result.message.messageContextInfo.messageSecret.toString('base64');
                     setTimeout(async() =>{
-                        const selected = await this.WLredis.getMessage(this.session_id, result.key.id)
+                        const selected = await this.WLredis.getOne(this.session_id, result.key.id,'messages')
                         if (!selected) {
                             return this.response(res, 400, false, 'This message does not exist.')
                         }
                         selected['metadata.encKey'] = encKey
-                        await this.WLredis.setMessage(this.session_id, selected);
+                        await this.WLredis.setOne(this.session_id, selected,'messages');
                     }, 3000)   
                 }
                 this.response(res, 200, true, 'The message has been successfully sent.', result)
@@ -169,7 +169,7 @@ export default class Message extends Helper {
         const type = req.body.type
         const url = req.body.url
 
-        const selected = await this.WLredis.getMessage(this.session_id, messageId)
+        const selected = await this.WLredis.getOne(this.session_id, messageId,'messages')
         if (!selected) {
             return this.response(res, 400, false, 'This message does not exist.')
         }
@@ -213,7 +213,7 @@ export default class Message extends Helper {
                 const result = await this.session.sendMessage(this.target, groupInvitaionMessage, quotedObj)
                 this.response(res, 200, true, 'The message has been successfully replied.', result)
             }else if(req.body.messageType == 18){
-                let productObj = await this.WLredis.getProduct(this.session_id, req.body.messageData.productId);
+                let productObj = await this.WLredis.getOne(this.session_id, req.body.messageData.productId,'products');
                 let productMessage = {
                     product:{
                         productId: req.body.messageData.productId, 
@@ -230,7 +230,7 @@ export default class Message extends Helper {
                 const result = await this.session.sendMessage(this.target, productMessage, quotedObj)
                 this.response(res, 200, true, 'The message has been successfully replied.', result)
             }else if(req.body.messageType == 19){
-                let products =  await this.WLredis.getProducts(this.session_id);
+                let products =  await this.WLredis.getData(this.session_id,'products');
                 let imageURL = products[0]['imageUrls.original'];
 
                 let responseFile = await axios.get(imageURL, {responseType: 'arraybuffer'})
@@ -273,7 +273,7 @@ export default class Message extends Helper {
 
 
         const messageId = req.body.messageId
-        const selected = await this.WLredis.getMessage(this.session_id, messageId)
+        const selected = await this.WLredis.getOne(this.session_id, messageId,'messages')
         if (!selected) {
             return this.response(res, 400, false, 'This message does not exist.')
         }
@@ -329,7 +329,7 @@ export default class Message extends Helper {
                 }
                 const result = await this.session.sendMessage(this.formatPhone(phone), groupInvitaionMessage, {})
             }else if(input.messageType == 18){
-                let productObj = await this.WLredis.getProduct(this.session_id, input.messageData.productId);
+                let productObj = await this.WLredis.getOne(this.session_id, input.messageData.productId,'products');
                 let productMessage = {
                     product:{
                         productId: input.messageData.productId, 
@@ -345,7 +345,7 @@ export default class Message extends Helper {
                 }
                 const result = await this.session.sendMessage(this.formatPhone(phone), productMessage, {})
             }else if(input.messageType == 19){
-                let products =  await this.WLredis.getProducts(this.session_id);
+                let products =  await this.WLredis.getData(this.session_id,'products');
                 let imageURL = products[0]['imageUrls.original'];
 
                 let responseFile = await axios.get(imageURL, {responseType: 'arraybuffer'})
@@ -389,7 +389,7 @@ export default class Message extends Helper {
     /*********************************************************/
     async deleteMessage(req, res) {
         const messageKey = req.body.messageId
-        const selected = await this.WLredis.getMessage(this.session_id, messageKey)
+        const selected = await this.WLredis.getOne(this.session_id, messageKey,'messages')
         if (!selected) {
             return this.response(res, 400, false, 'This message does not exist.')
         }
@@ -411,7 +411,7 @@ export default class Message extends Helper {
 
     async deleteMessageForMe(req, res) {
         const messageKey = req.body.messageId
-        const selected = await this.WLredis.getMessage(this.session_id, messageKey)
+        const selected = await this.WLredis.getOne(this.session_id, messageKey,'messages')
         if (!selected) {
             return this.response(res, 400, false, 'This message does not exist.')
         }
@@ -438,7 +438,7 @@ export default class Message extends Helper {
 
     async starMessage(req, res) {
         const messageId = req.body.messageId
-        const selected = await this.WLredis.getMessage(this.session_id, messageId)
+        const selected = await this.WLredis.getOne(this.session_id, messageId,'messages')
         if (!selected) {
             return this.response(res, 400, false, 'This message does not exist.')
         }
@@ -454,7 +454,7 @@ export default class Message extends Helper {
 
     async unstarMessage(req, res) {
         const messageId = req.body.messageId
-        const selected = await this.WLredis.getMessage(this.session_id, messageId)
+        const selected = await this.WLredis.getOne(this.session_id, messageId,'messages')
         if (!selected) {
             return this.response(res, 400, false, 'This message does not exist.')
         }
