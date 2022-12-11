@@ -189,7 +189,6 @@ const createSession = async (sessionId, res = null) => {
 						if (!msg.message) {
 							return
 						} // If there is no text or media message
-						console.log(msg.message)
 						if(msg.message && msg.message.hasOwnProperty('pollUpdateMessage')){
 							let msgId = msg.message.pollUpdateMessage?.pollCreationMessageKey?.id;	
 							selected = await Redis.getOne(sessionId, msgId,'messages')				
@@ -265,7 +264,7 @@ const createSession = async (sessionId, res = null) => {
 					const m = events['chats.update'];
 					m.forEach(async function(item){
 						// try {
-						// 	console.log(m[0]);
+							console.log(m[0]);
 						// 	(m[0].id !== 'status@broadcast') ? await Webhook.ChatsUpdate(sessionId, m[0]) : '';
 						// } catch (e) {
 						// 	(process.env.DEBUG_MODE == 'true') ? console.log('chats.update error', e) : '';
@@ -301,8 +300,8 @@ const createSession = async (sessionId, res = null) => {
 				if(events['quick_reply.set']){
 					const m = events['quick_reply.set']
 					try {
-					console.log('quick_reply.set')
-					console.log(m)
+					// console.log('quick_reply.set')
+					// console.log(m)
 						await Webhook.setReply(sessionId, m[0]);
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('quick_reply.set error', e) : '';

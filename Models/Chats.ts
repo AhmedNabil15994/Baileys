@@ -98,10 +98,12 @@ export default class Chats extends Helper {
                         'lastMessage':messages,
                         'contact': contacts,
                     };
-                    if(Number(dialog.pinned) > 0){
-                        pinned.push(dataObj)
-                    }else{
-                        notPinned.push(dataObj)
+                    if(dialog.hasOwnProperty('id') && dialog.id != '' && dialog.id != 'status@broadcast'){
+                        if(Number(dialog.pinned) > 0){
+                            pinned.push(dataObj)
+                        }else{
+                            notPinned.push(dataObj)
+                        }
                     }
                 }));
             }

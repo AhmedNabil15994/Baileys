@@ -447,7 +447,8 @@ export default class Helper {
                 text = 'catalogMessage'
             }else if(
                 msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
-                msgObj.message.extendedTextMessage.previewType == 0
+                msgObj.message.extendedTextMessage.previewType == 0 && 
+                msgObj.message.extendedTextMessage.matchedText != ''
             ){
                 text = 'linkWithPreview'
             }else{
@@ -573,7 +574,8 @@ export default class Helper {
                 }
             }else if(
                 msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
-                msgObj.message.extendedTextMessage.previewType === 0
+                msgObj.message.extendedTextMessage.previewType === 0 && 
+                msgObj.message.extendedTextMessage.matchedText != ''
             ){
                 dataObj.body =  msgObj.message.extendedTextMessage.text
                 dataObj['metadata'] = {

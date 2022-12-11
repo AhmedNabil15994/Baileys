@@ -71,7 +71,7 @@ export default class WLRedis extends Helper {
         try {
             let dataObj = await this.getOne(session_id,instanceData.id,dbInstance)
             
-            if(dbInstance == 'contact'){
+            if(dbInstance == 'contacts' || dbInstance == 'contact'){
                  if(instanceData.hasOwnProperty('notify')){
                     dataObj['notify'] = instanceData.notify
                 }
@@ -81,7 +81,7 @@ export default class WLRedis extends Helper {
                 if(instanceData.hasOwnProperty('name')){
                     dataObj['name'] = instanceData.name
                 }
-            }else if(dbInstance == 'message'){
+            }else if(dbInstance == 'messages' || dbInstance == 'message'){
                 let statusInt = instanceData.hasOwnProperty('update') ?  instanceData.update.status :  instanceData.status
                 let statusText = this.formatStatusText(statusInt)
                 let message_id = instanceData.hasOwnProperty('key') ? instanceData.key.id : instanceData.id;
@@ -89,7 +89,7 @@ export default class WLRedis extends Helper {
                 messageObj.status = statusInt;
                 messageObj.statusText = statusText;
                 instanceData = messageObj
-            }else if(dbInstance == 'chat'){
+            }else if(dbInstance == 'chats' || dbInstance == 'chat'){
                 if(instanceData.hasOwnProperty('conversationTimestamp')){
                     dataObj['last_time'] = instanceData.conversationTimestamp
                 }
@@ -115,7 +115,7 @@ export default class WLRedis extends Helper {
                 }
             }            
 
-            await this.setOne(session_id,instanceData,dbInstance)
+            await this.setOne(session_id,dataObj,dbInstance)
             return dataObj ?? null;
         } catch (error) {
             (process.env.DEBUG_MODE == 'true') ? console.log("WLRedis Update" + this.getInstanceName(dbInstance,1) + " " + error) : '';
