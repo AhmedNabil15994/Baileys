@@ -288,7 +288,7 @@ export default class Message extends Helper {
         }
     }
 
-    async sendOneFromGroup(phone,input,res){
+    async sendOneFromGroup(phone,input,res,loop){
         try {
             let checkWhatsApp = await this.onWhatsApp(this.session, this.formatPhone(phone));
             if (checkWhatsApp.length == 0) {
@@ -300,8 +300,14 @@ export default class Message extends Helper {
         }
 
         const type = input.messageType
-        let replyObj = await this.formatMsgToBeSendAsReply(input, {})
-        let newObj;
+        let replyObj,newObj;
+        if(Array.isArray(input.messageData)){
+            let newGroupObj = input.messageData[loop];
+            console.log('here');
+            replyObj = await this.formatMsgToBeSendAsReply({messageData: newGroupObj,messageType:type}, {})
+        }else{
+            replyObj = await this.formatMsgToBeSendAsReply(input, {})
+        }
 
         if(input.messageType == 10 ){
             newObj={
@@ -364,7 +370,6 @@ export default class Message extends Helper {
                 }
                 const result = await this.session.sendMessage(this.formatPhone(phone), catalogMessage, {})
             }else{
-                console.log(replyObj)
                 const result = await this.session.sendMessage(this.formatPhone(phone), replyObj, newObj)
             }
         } catch (error) {
@@ -378,7 +383,7 @@ export default class Message extends Helper {
         let i = 0
   
         let interval = setInterval(async() =>{
-            await this.sendOneFromGroup(phones[i],req.body,res);
+            await this.sendOneFromGroup(phones[i],req.body,res,i);
             if (i++ >= phones.length - 1){
                 clearInterval(interval);
             }
