@@ -303,7 +303,6 @@ export default class Message extends Helper {
         let replyObj,newObj;
         if(Array.isArray(input.messageData)){
             let newGroupObj = input.messageData[loop];
-            console.log('here');
             replyObj = await this.formatMsgToBeSendAsReply({messageData: newGroupObj,messageType:type}, {})
         }else{
             replyObj = await this.formatMsgToBeSendAsReply(input, {})

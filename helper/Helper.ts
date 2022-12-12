@@ -442,13 +442,20 @@ export default class Helper {
                 text = 'groupInvitationMessage'
             }else if(
                 msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
-                msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail')
+                msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail') && 
+                msgObj.message.extendedTextMessage.hasOwnProperty('description') &&
+                msgObj.message.extendedTextMessage.description == ''
             ){
                 text = 'catalogMessage'
             }else if(
-                msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
+                (msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
                 msgObj.message.extendedTextMessage.previewType == 0 && 
-                msgObj.message.extendedTextMessage.matchedText != ''
+                msgObj.message.extendedTextMessage.matchedText != '') || (
+                    msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
+                    msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail') && 
+                    msgObj.message.extendedTextMessage.hasOwnProperty('description') &&
+                    msgObj.message.extendedTextMessage.description != ''
+                )
             ){
                 text = 'linkWithPreview'
             }else{
@@ -571,6 +578,7 @@ export default class Helper {
                 dataObj['metadata'] = {
                     matchedText: msgObj.message.extendedTextMessage.matchedText,
                     title: msgObj.message.extendedTextMessage.title,
+                    description: msgObj.message.extendedTextMessage.description,
                 }
             }else if(
                 msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
@@ -581,6 +589,7 @@ export default class Helper {
                 dataObj['metadata'] = {
                     matchedText: msgObj.message.extendedTextMessage.matchedText,
                     title: msgObj.message.extendedTextMessage.title,
+                    description: msgObj.message.extendedTextMessage.description,
                 }
             }
             else{
