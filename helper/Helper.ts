@@ -443,8 +443,7 @@ export default class Helper {
             }else if(
                 msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
                 msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail') && 
-                msgObj.message.extendedTextMessage.hasOwnProperty('description') &&
-                msgObj.message.extendedTextMessage.description == ''
+                msgObj.message.extendedTextMessage.hasOwnProperty('description') 
             ){
                 text = 'catalogMessage'
             }else if(
@@ -609,7 +608,7 @@ export default class Helper {
                 msgObj.message.ephemeralMessage.message.extendedTextMessage &&
                 msgObj.message.ephemeralMessage.message.extendedTextMessage.contextInfo
             ) {
-                let expireTime = (msgObj.message.ephemeralMessage.message.extendedTextMessage.contextInfo.expiration / 1000) +
+                let expireTime = parseInt(msgObj.message.ephemeralMessage.message.extendedTextMessage.contextInfo.expiration) +
                     time;
                 dataObj['metadata']['expiration'] = expireTime 
                 dataObj['metadata']['expirationFormatted'] = new Date(expireTime * 1000).toUTCString()
@@ -1135,6 +1134,9 @@ export default class Helper {
             ...extraDataObj,
         }
 
+        if(dataObj.messageType == 'linkWithPreview'){
+            dataObj.metadata['description'] = dataObj.body.replace(dataObj.metadata['matchedText'],'')
+        }
         if(msg.message && msg.message.hasOwnProperty('pollUpdateMessage')){
             let quotedMessageType = "pollMessage";
             if(options && options.hasOwnProperty('pollMessage') && options.hasOwnProperty('pollOptions')){

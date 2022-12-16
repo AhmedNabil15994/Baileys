@@ -146,6 +146,7 @@ export default class Instance extends Helper {
         }
     }
 
+
     async fetchContacts(req, res) {
         try {
             let contacts: WLContactInterface[] = await this.WLredis.getData(this.session_id,'contacts');

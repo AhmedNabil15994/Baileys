@@ -111,7 +111,7 @@ export default class Message extends Helper {
                 // For Disappearing Messages
                 if(type == 10){
                     optionObj = {
-                        ephemeralExpiration: req.body.expiration ? req.body.expiration * 1000 : WA_DEFAULT_EPHEMERAL
+                        ephemeralExpiration: req.body.expiration ? req.body.expiration : WA_DEFAULT_EPHEMERAL
                     }
                 }
 
@@ -203,7 +203,7 @@ export default class Message extends Helper {
                 let codeResponse = await this.session.groupGetInviteInfo(groupCode)
                 let groupName = codeResponse.subject ;
                 let groupInvitaionMessage = {
-                    groupText: 'Follow this link to join my WhatsApp group: : ' + link, 
+                    groupText: 'Follow this link to join my WhatsApp group: ' + link, 
                     matchedText: link,
                     title: groupName,
                     description: 'WhatsApp Group Invite',
@@ -325,7 +325,7 @@ export default class Message extends Helper {
                 let codeResponse = await this.session.groupGetInviteInfo(groupCode)
                 let groupName = codeResponse.subject ;
                 let groupInvitaionMessage = {
-                    groupText: 'Follow this link to join my WhatsApp group: : ' + link, 
+                    groupText: 'Follow this link to join my WhatsApp group: ' + link, 
                     matchedText: link,
                     title: groupName,
                     description: 'WhatsApp Group Invite',

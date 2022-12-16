@@ -29,11 +29,13 @@ export default class Chats extends Helper {
         try {
             let dialogs: WLConversationInterface[] = await this.WLredis.getData(this.session_id,'chats');
             let dialogsArr: WLConversationInterface[] = []
+            let images = [];
             let image = '';
             if(dialogs.length){
                 await Promise.all(Object.values(dialogs).map(async (dialog) => {
                     try {
-                        image = await getSession(this.session_id).profilePictureUrl(dialog.id)
+                        //image = await getSession(this.session_id).profilePictureUrl(dialog.id)
+                        images[dialog.id] = await getSession(this.session_id).profilePictureUrl(dialog.id)
                     } catch (e) {
                         (process.env.DEBUG_MODE == 'true') ? console.log('fetching chat image error', dialog.id) : '';
                     }
@@ -50,10 +52,11 @@ export default class Chats extends Helper {
                         'disappearingMode': dialog.disappearingMode,
                         'muted': dialog.muted,
                         'mutedUntil': dialog.mutedUntil,
-                        'image' : image,
+                        'image' : images[dialog.id] ? images[dialog.id]: '',
                     })
                 }));
             }
+
             let page = req.query.page ?? 1;
             let page_size = req.query.page_size ?? 100;
             let paginatedData = await this.paginateData(dialogsArr,page,page_size)

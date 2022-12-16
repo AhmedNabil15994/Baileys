@@ -410,7 +410,7 @@ export default class Groups extends Helper {
             let groupName = codeResponse.subject ;
 
             const result = await this.session.sendMessage(this.target, {
-                groupText: 'Follow this link to join my WhatsApp group: : ' + link, 
+                groupText: 'Follow this link to join my WhatsApp group: ' + link, 
                 matchedText: link,
                 title: groupName,
                 description: 'WhatsApp Group Invite',
