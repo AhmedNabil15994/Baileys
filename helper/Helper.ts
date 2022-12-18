@@ -428,7 +428,7 @@ export default class Helper {
                 msgObj.message.extendedTextMessage.contextInfo && 
                 msgObj.message.extendedTextMessage.contextInfo.quotedMessage
             ) {
-                text = 'replyMessage'
+                text = 'text'
             }else if(
                 msgObj.message.extendedTextMessage.contextInfo != null &&
                 msgObj.message.extendedTextMessage.contextInfo.hasOwnProperty('isForwarded') &&
@@ -544,6 +544,7 @@ export default class Helper {
 
                 dataObj.body = msgObj.message.extendedTextMessage.text;
                 dataObj['metadata'] = {
+                    type:'reply',
                     quotedMessageId: newMsgObj.key.id,
                     remoteJid: newMsgObj.key.remoteJid,
                     fromMe: newMsgObj.key.fromMe,
