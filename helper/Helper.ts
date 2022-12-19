@@ -443,7 +443,8 @@ export default class Helper {
             }else if(
                 msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
                 msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail') && 
-                msgObj.message.extendedTextMessage.hasOwnProperty('description') 
+                msgObj.message.extendedTextMessage.hasOwnProperty('description') && 
+                !msgObj.message.extendedTextMessage.hasOwnProperty('previewType')
             ){
                 text = 'catalogMessage'
             }else if(
@@ -572,7 +573,10 @@ export default class Helper {
                     expiration: 0,
                 }
             }else if(
-                msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl')
+                msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
+                msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail') && 
+                msgObj.message.extendedTextMessage.hasOwnProperty('description') && 
+                !msgObj.message.extendedTextMessage.hasOwnProperty('previewType')
             ){
                 dataObj.body =  msgObj.message.extendedTextMessage.text
                 dataObj['metadata'] = {
@@ -581,13 +585,18 @@ export default class Helper {
                     description: msgObj.message.extendedTextMessage.description,
                 }
             }else if(
-                msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
-                msgObj.message.extendedTextMessage.previewType === 0 && 
-                msgObj.message.extendedTextMessage.matchedText != ''
+                (msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
+                msgObj.message.extendedTextMessage.previewType == 0 && 
+                msgObj.message.extendedTextMessage.matchedText != '') || (
+                    msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
+                    msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail') && 
+                    msgObj.message.extendedTextMessage.hasOwnProperty('description') &&
+                    msgObj.message.extendedTextMessage.description != ''
+                )
             ){
                 dataObj.body =  msgObj.message.extendedTextMessage.text
                 dataObj['metadata'] = {
-                    matchedText: msgObj.message.extendedTextMessage.matchedText,
+                    matchedText: msgObj.message.extendedTextMessage.canonicalUrl != '' ? msgObj.message.extendedTextMessage.canonicalUrl : msgObj.message.extendedTextMessage.matchedText ,
                     title: msgObj.message.extendedTextMessage.title,
                     description: msgObj.message.extendedTextMessage.description,
                 }
@@ -1109,7 +1118,7 @@ export default class Helper {
     async reformatMessageObj(sessionId, msg, messageType, sock , options={}) {
         require('events').EventEmitter.defaultMaxListeners = 100000;
         var newSessionId = sessionId.replace('wlChannel', '')
-
+        console.log(msg.message)
         let status = this.getMessageStatus(msg);
         const deviceType = getDevice(msg.key.id)
         let time = this.getMessageTime(msg);
@@ -1135,7 +1144,7 @@ export default class Helper {
             ...extraDataObj,
         }
 
-        if(dataObj.messageType == 'linkWithPreview'){
+        if(dataObj.messageType == 'linkWithPreview' && dataObj.metadata['description'] == ''){
             dataObj.metadata['description'] = dataObj.body.replace(dataObj.metadata['matchedText'],'')
         }
         if(msg.message && msg.message.hasOwnProperty('pollUpdateMessage')){
