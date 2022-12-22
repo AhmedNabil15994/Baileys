@@ -252,6 +252,7 @@ const createSession = async (sessionId, res = null) => {
 				// messages updated like status delivered, message deleted etc.
 				if (events['messages.update']) {
 					const m = events['messages.update'];
+					console.log(m[0])
 					try {
 						(m[0].key.remoteJid !== 'status@broadcast') ? await Webhook.MessageUpdates(sessionId, m[0]) : '';
 					} catch (e) {
@@ -320,14 +321,15 @@ const createSession = async (sessionId, res = null) => {
 
 				if (events['chat.labeled']) {
 					const m = events['chat.labeled']
-					// console.log(m)
+					console.log(m)
 				}
 
 				// While Chats Deleted From API
 				if (events['chats.delete']) {
 					const m = events['chats.delete']
+					// console.log(m[0])
 					try {
-						await Webhook.ChatsDelete(sessionId, m[0])
+						// await Webhook.ChatsDelete(sessionId, m[0])
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('chats.delete error', e) : '';
 					}
@@ -342,6 +344,15 @@ const createSession = async (sessionId, res = null) => {
 				if (events['messages.delete']) {
 					const m = events['messages.delete']
 					console.log(m)
+				}
+
+				if (events['messages.labeled']) {
+					const m = events['messages.labeled']
+					try {
+						await Webhook.MessageUpdates(sessionId, m[0]);
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('messages.update error', e) : '';
+					}
 				}
 
 

@@ -80,24 +80,64 @@ export default class WLWebhook extends Helper {
 
     async MessageUpdates(sessionId, message) {
         try {
-            message.key.remoteJid = this.fixRemoteJid(message.key.remoteJid);
-            await this.needle.post(
-                this.base_url,
-                {
-                    messageStatus: {
-                        id: message.key.id,
-                        status: message.update.status,
-                        statusText: this.formatStatusText(message.update.status),
-                        fromMe: message.key.fromMe,
-                        chatId: message.key.remoteJid,
+            if(message.hasOwnProperty('key')){
+                message.key.remoteJid = this.fixRemoteJid(message.key.remoteJid);
+            }
+            if(message.hasOwnProperty('labeled')){
+                await this.needle.post(
+                    this.base_url,
+                    {
+                        messageStatus: {
+                            id: message.messageId,
+                            status: message.labeled ? 'labelled' : 'unlabelled',
+                            label_id: message.label_id,
+                            chatId: this.fixRemoteJid(message.remoteJid),
+                            fromMe: message.fromMe,
+                        },
+                        sessionId,
                     },
-                    sessionId,
-                },
-                (err, resp, body) => {
-                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook MessageUpdates : ' + body) : '';
-                }
-            )
-            await this.Redis.updateOne(sessionId, message,'messages');
+                    (err, resp, body) => {
+                        (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook MessageUpdates : ' + body) : '';
+                    }
+                )
+                await this.Redis.updateOne(sessionId, {id:message.messageId,labeled:message.labeled,label_id:message.label_id},'messages');
+            }else if(message.update.hasOwnProperty('starred')){
+                await this.needle.post(
+                    this.base_url,
+                    {
+                        messageStatus: {
+                            id: message.key.id,
+                            status: message.update.starred ? 'starred' : 'unstarred',
+                            fromMe: message.key.fromMe,
+                            chatId: message.key.remoteJid,
+                        },
+                        sessionId,
+                    },
+                    (err, resp, body) => {
+                        (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook MessageUpdates : ' + body) : '';
+                    }
+                )
+                await this.Redis.updateOne(sessionId, message,'messages');
+            }else{
+                let msgStatus = message.update.hasOwnProperty('message') ? 6 : message.update.status;
+                await this.needle.post(
+                    this.base_url,
+                    {
+                        messageStatus: {
+                            id: message.key.id,
+                            status: msgStatus,
+                            statusText: this.formatStatusText(msgStatus),
+                            fromMe: message.key.fromMe,
+                            chatId: message.key.remoteJid,
+                        },
+                        sessionId,
+                    },
+                    (err, resp, body) => {
+                        (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook MessageUpdates : ' + body) : '';
+                    }
+                )
+                await this.Redis.updateOne(sessionId, message,'messages');
+            }
         } catch (error) {
             console.log('WLWebhook MessageUpdates : ' + error)
         }

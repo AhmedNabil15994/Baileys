@@ -156,8 +156,9 @@ export default class Helper {
             text = 'Delivered'
         } else if (status == 4 || status == 'READ') {
             text = 'Viewed'
+        }else if (status == 6) {
+            text = 'Deleted'
         }
-
         return text
     }
 
@@ -382,7 +383,13 @@ export default class Helper {
             dataObj.metadata['quotedMessageId']  = msg.message[messageType].contextInfo.stanzaId
             dataObj.metadata['remoteJid']  = msg.message[messageType].contextInfo.participant
             dataObj.metadata['quotedMessage']  = await this.getMessageInfo(newMsgObj,quotedMessageType,time,newSessionId,sock)            
-            dataObj.metadata['newMessageType'] = mediaTypeText + " (Reply Message)"
+            dataObj.metadata['type'] = 'reply'
+        }
+
+        if (msg.message[messageType].hasOwnProperty('contextInfo') && msg.message[messageType].contextInfo.hasOwnProperty('isForwarded') && msg.message[messageType].contextInfo.isForwarded == true) {
+            dataObj.metadata['type'] = 'forward'
+            dataObj.metadata['isForwarded'] = msg.message[messageType].contextInfo.isForwarded;
+            dataObj.metadata['forwardingScore'] = msg.message[messageType].contextInfo.forwardingScore;
         }
 
         await this.downloadMessageFile(msg,path,sock);
@@ -434,7 +441,7 @@ export default class Helper {
                 msgObj.message.extendedTextMessage.contextInfo.hasOwnProperty('isForwarded') &&
                 msgObj.message.extendedTextMessage.contextInfo.isForwarded >= 0
             ){
-                text = 'forwardMessage'
+                text = 'text'
             }else if(
                 msgObj.message.extendedTextMessage.description != null &&
                 msgObj.message.extendedTextMessage.description == 'WhatsApp Group Invite'
@@ -536,7 +543,7 @@ export default class Helper {
                 let newMsgObj = {
                     key: {
                         remoteJid:  msgObj.message.extendedTextMessage.contextInfo.participant,
-                        fromMe: false,
+                        fromMe: msgObj.message.extendedTextMessage.contextInfo.stanzaId.length > 20 ? false:true,
                         id:  msgObj.message.extendedTextMessage.contextInfo.stanzaId,
                     },
                     message:  msgObj.message.extendedTextMessage.contextInfo.quotedMessage,
@@ -558,6 +565,7 @@ export default class Helper {
             ){
                 dataObj.body =  msgObj.message.extendedTextMessage.text
                 dataObj['metadata'] = {
+                    type:'forward',
                     forwardingScore: msgObj.message.extendedTextMessage.contextInfo.forwardingScore,
                     isForwarded: msgObj.message.extendedTextMessage.contextInfo.isForwarded
                 }
@@ -662,7 +670,11 @@ export default class Helper {
             dataObj.body = msgObj.message.reactionMessage.text
             dataObj['metadata'] = {
                 reaction: msgObj.message.reactionMessage.text,
-                messageKey: msgObj.message.reactionMessage.key,
+                quotedMessageId: msgObj.message.reactionMessage.key.id,
+                quotedMessage: {
+                    'fromMe' : msgObj.message.reactionMessage.key.id.length > 20 ? false:true,
+                    remoteJid: msgObj.message.reactionMessage.key.remoteJid,
+                }
             }
         }else if (messageType == 'buttonsMessage' || (messageType == 'viewOnceMessage' && msgObj.message.viewOnceMessage.message && msgObj.message.viewOnceMessage.message.buttonsMessage)){
             let msgData = msgObj.message.viewOnceMessage ? msgObj.message.viewOnceMessage.message.buttonsMessage : msgObj.message.buttonsMessage;

@@ -82,13 +82,24 @@ export default class WLRedis extends Helper {
                     dataObj['name'] = instanceData.name
                 }
             }else if(dbInstance == 'messages' || dbInstance == 'message'){
-                let statusInt = instanceData.hasOwnProperty('update') ?  instanceData.update.status :  instanceData.status
-                let statusText = this.formatStatusText(statusInt)
-                let message_id = instanceData.hasOwnProperty('key') ? instanceData.key.id : instanceData.id;
-                let messageObj = await this.getOne(session_id,message_id,'messages');
-                messageObj.status = statusInt;
-                messageObj.statusText = statusText;
-                instanceData = messageObj
+                let messageObj,message_id;
+                if(instanceData.hasOwnProperty('labeled')){
+                    message_id = instanceData.id;
+                    messageObj = await this.getOne(session_id,message_id,'messages');
+                    messageObj['labeled'] = instanceData.labeled ? instanceData.label_id : 0;
+                }else if(instanceData.update.hasOwnProperty('starred')){
+                    message_id = instanceData.hasOwnProperty('key') ? instanceData.key.id : instanceData.id;
+                    messageObj = await this.getOne(session_id,message_id,'messages');
+                    messageObj['starred'] = instanceData.update.starred;
+                }else{
+                    message_id = instanceData.hasOwnProperty('key') ? instanceData.key.id : instanceData.id;
+                    messageObj = await this.getOne(session_id,message_id,'messages');
+                    let statusInt = instanceData.update.hasOwnProperty('message') ? 6 : instanceData.update.status;
+                    let statusText = this.formatStatusText(statusInt)
+                    messageObj['status'] = statusInt;
+                    messageObj['statusText'] = statusText;
+                }
+                dataObj = messageObj
             }else if(dbInstance == 'chats' || dbInstance == 'chat'){
                 if(instanceData.hasOwnProperty('conversationTimestamp')){
                     dataObj['last_time'] = instanceData.conversationTimestamp
