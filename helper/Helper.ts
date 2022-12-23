@@ -837,6 +837,28 @@ export default class Helper {
             dataObj.metadata['options'] = this.formatOptionsResponse(msgObj.message.pollCreationMessage.options);    
             dataObj.metadata['selectableOptionsCount'] = msgObj.message.pollCreationMessage.selectableOptionsCount;    
         }
+
+        if (msgObj.message[messageType] && msgObj.message[messageType].hasOwnProperty('contextInfo') && msgObj.message[messageType].contextInfo.hasOwnProperty('quotedMessage')) {
+            let quotedMessageType = Object.keys( msgObj.message[messageType].contextInfo.quotedMessage)[0];
+            let newMsgObj = {
+                key: {
+                    remoteJid:  msgObj.message[messageType].contextInfo.participant,
+                    fromMe: msgObj.message[messageType].contextInfo.quotedMessage.hasOwnProperty('fromMe') ?  msgObj.message[messageType].contextInfo.quotedMessage.fromMe : false ,
+                    id:  msgObj.message[messageType].contextInfo.stanzaId
+                },
+                message: msgObj.message[messageType].contextInfo.quotedMessage,
+            }
+            dataObj.metadata['quotedMessageId']  = msgObj.message[messageType].contextInfo.stanzaId
+            dataObj.metadata['remoteJid']  = msgObj.message[messageType].contextInfo.participant
+            dataObj.metadata['quotedMessage']  = await this.getMessageInfo(newMsgObj,quotedMessageType,time,newSessionId,sock)            
+            dataObj.metadata['type'] = 'reply'
+        }
+
+        if (msgObj.message[messageType] && msgObj.message[messageType].hasOwnProperty('contextInfo') && msgObj.message[messageType].contextInfo.hasOwnProperty('isForwarded') && msgObj.message[messageType].contextInfo.isForwarded == true) {
+            dataObj.metadata['type'] = 'forward'
+            dataObj.metadata['isForwarded'] = msgObj.message[messageType].contextInfo.isForwarded;
+            dataObj.metadata['forwardingScore'] = msgObj.message[messageType].contextInfo.forwardingScore;
+        }
         return dataObj;
     }
 

@@ -252,7 +252,7 @@ const createSession = async (sessionId, res = null) => {
 				// messages updated like status delivered, message deleted etc.
 				if (events['messages.update']) {
 					const m = events['messages.update'];
-					console.log(m[0])
+					// console.log(m[0])
 					try {
 						(m[0].key.remoteJid !== 'status@broadcast') ? await Webhook.MessageUpdates(sessionId, m[0]) : '';
 					} catch (e) {

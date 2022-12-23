@@ -421,7 +421,7 @@ export default class Business extends Helper {
                         labeled:true,
                         label_id:labelId,
                         jid:selected.remoteJid,
-                        fromMe:selected.fromMe,
+                        fromMe:selected.fromMe == 'true' ? '1' : '0',
                         messageId:req.body.messageId,
                     } 
                 }, selected.remoteJid)
@@ -458,7 +458,7 @@ export default class Business extends Helper {
                         labeled:false,
                         label_id:labelId,
                         jid:selected.remoteJid,
-                        fromMe:selected.fromMe,
+                        fromMe:selected.fromMe == 'true' ? '1' : '0',
                         messageId:req.body.messageId,
                     } 
                 }, selected.remoteJid)
