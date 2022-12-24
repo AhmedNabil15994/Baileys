@@ -997,7 +997,7 @@ export default class Helper {
                 mentions: [phone + '@s.whatsapp.net'],
             }
         }else if(type == 12){
-            let bodyText = this.getReactionText(input.messageData.reaction)
+            let bodyText = input.messageData.reaction == 'unset' ? '' : input.messageData.reaction
             replyObj = {
                 react: {
                     text: bodyText,
@@ -1335,7 +1335,7 @@ export default class Helper {
                 mentions: [phone + '@s.whatsapp.net'],
             }
         }else if(type == 12){
-            let bodyText = this.getReactionText(input.body)
+            let bodyText = input.body == 'unset' ? '' : input.body
             msgObj.message = {
                 react: {
                     text: bodyText,
