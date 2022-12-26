@@ -15,4 +15,6 @@ export default interface WLConversationInterface {
   image?:string,
   muted?:boolean,
   mutedUntil?:string,
+  labeled?:string,
+  labels?:string,
 }

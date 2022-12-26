@@ -155,26 +155,38 @@ const createSession = async (sessionId, res = null) => {
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('messages.set error', e) : '';
 					}
-				}
 
-				// chat history received
-				if (events['chats.set']) {
-					const { chats } = events['chats.set']
-					try {
-						await Redis.setData(sessionId, chats,'chats');
-					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('chats.set error', e) : '';
-					}
-				}
-
-				// contact history received
-				if (events['contacts.set']) {
-					const { contacts } = events['contacts.set']
-					try {
-						await Redis.setData(sessionId, contacts,'contacts');
-					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('contacts.set error', e) : '';
-					}
+					messages.forEach(async function(item){
+						try {
+							if(item.reactions && item.reactions[0]){
+								item.reactions.forEach(async function(reaction){
+									try {
+										let msgObj = {
+											key:reaction.key,
+											messageTimestamp: item.messageTimestamp,
+											status: 2,
+											message:{
+												reactionMessage: {
+													key:item.key,
+													text:reaction.text,
+													senderTimestampMs:reaction.senderTimestampMs,
+												}
+											},
+										}
+										
+										const messageObj = await WLHelper.reformatMessageObj(sessionId, msgObj, 'reactionMessage', sock)
+										if (messageObj) {
+											await Redis.setOne(sessionId, messageObj,'messages');
+										}
+									} catch (e) {
+										(process.env.DEBUG_MODE == 'true') ? console.log('messages.set.reaction error', e) : '';
+									}
+								});
+							}
+						} catch (e) {
+							(process.env.DEBUG_MODE == 'true') ? console.log('messages.set error', e) : '';
+						}
+					});
 				}
 
 				// received a new message
@@ -252,11 +264,36 @@ const createSession = async (sessionId, res = null) => {
 				// messages updated like status delivered, message deleted etc.
 				if (events['messages.update']) {
 					const m = events['messages.update'];
-					// console.log(m[0])
+					m.forEach(async function(item){
+						try {
+							(m[0].key.remoteJid !== 'status@broadcast') ? await Webhook.MessageUpdates(sessionId, item) : '';
+						} catch (e) {
+							(process.env.DEBUG_MODE == 'true') ? console.log('messages.update error', e) : '';
+						}
+					});
+				}
+
+				if (events['messages.labeled']) {
+					const m = events['messages.labeled']
 					try {
-						(m[0].key.remoteJid !== 'status@broadcast') ? await Webhook.MessageUpdates(sessionId, m[0]) : '';
+						await Webhook.MessageUpdates(sessionId, m[0]);
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('messages.update error', e) : '';
+					}
+				}
+
+				if (events['messages.delete']) {
+					const m = events['messages.delete']
+					console.log(m)
+				}
+
+				// chat history received
+				if (events['chats.set']) {
+					const { chats } = events['chats.set']
+					try {
+						await Redis.setData(sessionId, chats,'chats');
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('chats.set error', e) : '';
 					}
 				}
 
@@ -265,7 +302,6 @@ const createSession = async (sessionId, res = null) => {
 					const m = events['chats.update'];
 					m.forEach(async function(item){
 						// try {
-							console.log(m[0]);
 						// 	(m[0].id !== 'status@broadcast') ? await Webhook.ChatsUpdate(sessionId, m[0]) : '';
 						// } catch (e) {
 						// 	(process.env.DEBUG_MODE == 'true') ? console.log('chats.update error', e) : '';
@@ -279,49 +315,13 @@ const createSession = async (sessionId, res = null) => {
 					
 				}
 
-				if(events['labels.set']){
-					const m = events['labels.set']
+				if (events['chats.labeled']) {
+					const m = events['chats.labeled'];
 					try {
-						await Webhook.setLabel(sessionId, m[0]);
+						await Webhook.ChatsUpdate(sessionId, m[0])
 					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('labels.set error', e) : '';
+						(process.env.DEBUG_MODE == 'true') ? console.log('chats.labeled error', e) : '';
 					}
-				}
-
-				if(events['labels.delete']){
-					const m = events['labels.delete']
-					try {
-						await Webhook.deleteLabel(sessionId, m[0]);
-					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('labels.set error', e) : '';
-					}
-					// console.log(m)
-				}
-
-				if(events['quick_reply.set']){
-					const m = events['quick_reply.set']
-					try {
-					// console.log('quick_reply.set')
-					// console.log(m)
-						await Webhook.setReply(sessionId, m[0]);
-					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('quick_reply.set error', e) : '';
-					}
-				}
-
-				if(events['quick_reply.delete']){
-					const m = events['quick_reply.delete']
-					try {
-						await Webhook.deleteReply(sessionId, m[0]);
-					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('quick_reply.set error', e) : '';
-					}
-					// console.log(m)
-				}
-
-				if (events['chat.labeled']) {
-					const m = events['chat.labeled']
-					console.log(m)
 				}
 
 				// While Chats Deleted From API
@@ -341,20 +341,15 @@ const createSession = async (sessionId, res = null) => {
 					console.log(m)
 				}
 
-				if (events['messages.delete']) {
-					const m = events['messages.delete']
-					console.log(m)
-				}
-
-				if (events['messages.labeled']) {
-					const m = events['messages.labeled']
+				// contact history received
+				if (events['contacts.set']) {
+					const { contacts } = events['contacts.set']
 					try {
-						await Webhook.MessageUpdates(sessionId, m[0]);
+						await Redis.setData(sessionId, contacts,'contacts');
 					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('messages.update error', e) : '';
+						(process.env.DEBUG_MODE == 'true') ? console.log('contacts.set error', e) : '';
 					}
 				}
-
 
 				if (events['contacts.upsert']) {
 					try {
@@ -401,11 +396,51 @@ const createSession = async (sessionId, res = null) => {
 				}
 
 				if (events['blocklist.set']) {
-					// console.log(events['blocklist.set'])
+					console.log(events['blocklist.set'])
 				}
 
 				if (events['blocklist.update']) {
-					// console.log(events['blocklist.update'])
+					console.log(events['blocklist.update'])
+				}
+
+				if(events['labels.set']){
+					const m = events['labels.set']
+					try {
+						await Webhook.setLabel(sessionId, m[0]);
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('labels.set error', e) : '';
+					}
+				}
+
+				if(events['labels.delete']){
+					const m = events['labels.delete']
+					try {
+						await Webhook.deleteLabel(sessionId, m[0]);
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('labels.set error', e) : '';
+					}
+					// console.log(m)
+				}
+
+				if(events['quick_reply.set']){
+					const m = events['quick_reply.set']
+					try {
+					// console.log('quick_reply.set')
+					// console.log(m)
+						await Webhook.setReply(sessionId, m[0]);
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('quick_reply.set error', e) : '';
+					}
+				}
+
+				if(events['quick_reply.delete']){
+					const m = events['quick_reply.delete']
+					try {
+						await Webhook.deleteReply(sessionId, m[0]);
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('quick_reply.set error', e) : '';
+					}
+					// console.log(m)
 				}
 
 				if (events['call']) {

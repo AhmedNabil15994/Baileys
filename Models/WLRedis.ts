@@ -87,6 +87,7 @@ export default class WLRedis extends Helper {
                     message_id = instanceData.id;
                     messageObj = await this.getOne(session_id,message_id,'messages');
                     messageObj['labeled'] = instanceData.labeled ? instanceData.label_id : 0;
+                    // messageObj['metadata']['labels'][instanceData.label_id] = instanceData.labeled
                 }else if(instanceData.update.hasOwnProperty('starred')){
                     message_id = instanceData.hasOwnProperty('key') ? instanceData.key.id : instanceData.id;
                     messageObj = await this.getOne(session_id,message_id,'messages');
@@ -114,7 +115,7 @@ export default class WLRedis extends Helper {
                     dataObj['pinned'] = instanceData.pin == null ? false : instanceData.pin
                 }
                 if(instanceData.hasOwnProperty('unreadCount')){
-                    dataObj['unreadCount'] = Math.abs(instanceData.unreadCount)
+                    dataObj['unreadCount'] = instanceData.unreadCount
                 }
                 if(instanceData.hasOwnProperty('mute')){
                     if(instanceData.mute == null){
@@ -122,6 +123,14 @@ export default class WLRedis extends Helper {
                     }else{
                         dataObj['muted'] = true
                         dataObj['mutedUntil'] = new Date(instanceData.mute).toUTCString()
+                    }
+                }
+                if(instanceData.hasOwnProperty('labeled')){
+                    dataObj['labeled'] = instanceData.labeled ? instanceData.label_id : 0;
+                    if(instanceData.labeled){
+                        dataObj['labels'] = dataObj['labels'] && dataObj['labels'].indexOf(instanceData.label_id+',') == -1  ? (dataObj['labels']+instanceData.label_id+',') : (instanceData.label_id+',')
+                    }else{
+                        dataObj['labels'] = dataObj['labels'].replace( (instanceData.label_id+',') , '' )                        
                     }
                 }
             }            

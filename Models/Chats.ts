@@ -52,6 +52,7 @@ export default class Chats extends Helper {
                         'disappearingMode': dialog.disappearingMode,
                         'muted': dialog.muted,
                         'mutedUntil': dialog.mutedUntil,
+                        'labels': dialog.labels,
                         'image' : images[dialog.id] ? images[dialog.id]: '',
                     })
                 }));
@@ -188,6 +189,7 @@ export default class Chats extends Helper {
                     'disappearingMode': selected['disappearingMode'],
                     'muted': selected['muted'],
                     'mutedUntil': selected['mutedUntil'],
+                    'labels': selected['labels'],
                     'image' : image,
                 }
             }

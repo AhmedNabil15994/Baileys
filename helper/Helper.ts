@@ -1152,7 +1152,7 @@ export default class Helper {
     async reformatMessageObj(sessionId, msg, messageType, sock , options={}) {
         require('events').EventEmitter.defaultMaxListeners = 100000;
         var newSessionId = sessionId.replace('wlChannel', '')
-        console.log(msg.message)
+        // console.log(msg.message)
         let status = this.getMessageStatus(msg);
         const deviceType = getDevice(msg.key.id)
         let time = this.getMessageTime(msg);
@@ -1223,8 +1223,8 @@ export default class Helper {
             }
         }
 
-        console.log('--------------------');
-        console.log(dataObj);
+        // console.log('--------------------');
+        // console.log(dataObj);
 
         return dataObj;        
     }
