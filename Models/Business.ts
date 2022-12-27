@@ -349,12 +349,13 @@ export default class Business extends Helper {
                 return this.response(res, 400, false, "This profile isn't business account.")
             }
 
-            const found = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const found = await this.onWhatsApp(this.session, this.target)
 
-            if (!found) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!found) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
-
 
             const status = await this.session.chatModify(
                 { 
@@ -380,10 +381,12 @@ export default class Business extends Helper {
                 return this.response(res, 400, false, "This profile isn't business account.")
             }
 
-            const found = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const found = await this.onWhatsApp(this.session, this.target)
 
-            if (!found) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!found) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
 
             const status = await this.session.chatModify(

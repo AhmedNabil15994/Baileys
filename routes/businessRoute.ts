@@ -113,7 +113,8 @@ router.post(
 router.post(
     '/labelChat',
     query('id').notEmpty(),
-    body('phone').notEmpty(),
+    body('phone'),
+    body('chat').if(body('phone').not().exists()).notEmpty(),
     body('labelId').notEmpty(),
     requestValidator,
     sessionValidator,
@@ -123,7 +124,8 @@ router.post(
 router.post(
     '/unlabelChat',
     query('id').notEmpty(),
-    body('phone').notEmpty(),
+    body('phone'),
+    body('chat').if(body('phone').not().exists()).notEmpty(),
     body('labelId').notEmpty(),
     requestValidator,
     sessionValidator,

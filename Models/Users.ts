@@ -86,7 +86,7 @@ export default class Users extends Helper {
 
             return this.response(res, 200, true, 'User profile picture url found', image)
         } catch {
-            return this.response(res, 500, false, 'Failed to get user profile picture.')
+            return this.response(res, 500, true, 'User profile picture url  not found.' , '')
         }
     }
 

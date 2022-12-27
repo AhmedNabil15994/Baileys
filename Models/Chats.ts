@@ -202,11 +202,14 @@ export default class Chats extends Helper {
 
     async deleteChat(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
+            
             const lastMsgInChat = await this.WLredis.getLastMessageInChat(this.session_id, this.target)
             const status = await this.session.chatModify({ delete: true, lastMessages: [lastMsgInChat] }, this.target)
             return this.response(res, 200, true, 'Chat Deleted Successfully !!', {
@@ -220,10 +223,12 @@ export default class Chats extends Helper {
 
     async clearChat(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
             const lastMsgInChat = await this.WLredis.getLastMessageInChat(this.session_id, this.target)
             const status = await this.session.chatModify({ clear: 'all', lastMessages: [lastMsgInChat] }, this.target)
@@ -238,12 +243,15 @@ export default class Chats extends Helper {
 
     async readChat(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
             const lastMsgInChat = await this.WLredis.getLastMessageInChat(this.session_id, this.target)
+            const read = await this.session.readMessages([lastMsgInChat.key])
             const status = await this.session.chatModify({ markRead: true, lastMessages: [lastMsgInChat] }, this.target)
 
             return this.response(res, 200, true, 'Chat Read Successfully !!', {
@@ -257,10 +265,12 @@ export default class Chats extends Helper {
 
     async unreadChat(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
             const lastMsgInChat = await this.WLredis.getLastMessageInChat(this.session_id, this.target)             
             const status = await this.session.chatModify({ markRead: false, lastMessages: [lastMsgInChat] }, this.target)
@@ -275,10 +285,12 @@ export default class Chats extends Helper {
 
     async archiveChat(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
             const lastMsgInChat = await this.WLredis.getLastMessageInChat(this.session_id, this.target)
             const status = await this.session.chatModify({ archive: true, lastMessages: [lastMsgInChat] }, this.target)
@@ -293,10 +305,12 @@ export default class Chats extends Helper {
 
     async unarchiveChat(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
             const lastMsgInChat = await this.WLredis.getLastMessageInChat(this.session_id, this.target)
             const status = await this.session.chatModify({ archive: false, lastMessages: [lastMsgInChat] }, this.target)
@@ -312,10 +326,12 @@ export default class Chats extends Helper {
     async muteChat(req, res) {
         const { duration } = req.body
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
 
             let now = Date.now()
@@ -334,10 +350,12 @@ export default class Chats extends Helper {
 
     async unmuteChat(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
 
             const status = await this.session.chatModify({ mute: null }, this.target, [])
@@ -353,10 +371,12 @@ export default class Chats extends Helper {
 
     async pinChat(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
 
             const status = await this.session.chatModify({ pin: true }, this.target, [])
@@ -372,10 +392,12 @@ export default class Chats extends Helper {
 
     async unpinChat(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
 
             const status = await this.session.chatModify({ pin: false }, this.target, [])
@@ -392,10 +414,12 @@ export default class Chats extends Helper {
     //'unavailable' | 'available' | 'composing' | 'recording' | 'paused'
     async setTyping(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
 
             const updated = await this.session.sendPresenceUpdate('composing',this.target)
@@ -411,10 +435,12 @@ export default class Chats extends Helper {
 
     async setRecording(req, res) {
         try {
-            const exists = await this.onWhatsApp(this.session, this.target)
+            if(req.body.phone){
+                const exists = await this.onWhatsApp(this.session, this.target)
 
-            if (!exists) {
-                return this.response(res, 400, false, 'This chat does not exist.')
+                if (!exists) {
+                    return this.response(res, 400, false, 'This chat does not exist.')
+                }
             }
 
             const updated = await this.session.sendPresenceUpdate('recording',this.target)
