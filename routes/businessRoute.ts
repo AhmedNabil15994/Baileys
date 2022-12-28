@@ -26,6 +26,14 @@ router.post(
 )
 
 router.post(
+    '/getOrders',
+    query('id').notEmpty(),
+    requestValidator,
+    sessionValidator,
+    (req, res) => new Business(req,res).getOrders(req, res)
+)
+
+router.post(
     '/getOrder',
     query('id').notEmpty(),
     body('orderId').notEmpty(),

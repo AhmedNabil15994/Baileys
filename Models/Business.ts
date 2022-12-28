@@ -68,6 +68,54 @@ export default class Business extends Helper {
         }
     }
 
+    async getOrders(req, res) {
+        try {
+            let userId = this.session.user.id.indexOf(':') > 0 ?  this.session.user.id.split(':')[0]+'@s.whatsapp.net' : this.session.user.id
+            const exists = await this.isBusiness(this.session, userId)
+            let chatId = req.body.phone ? req.body.phone : ''
+
+            if (!exists) {
+                return this.response(res, 400, false, "This profile isn't business account.")
+            }
+
+            let orders :any[] = [];
+            let messages = await this.WLredis.getData(this.session_id,'messages');
+
+            await Promise.all(Object.values(messages).map(async (item : any) => {
+                if((item.messageType == 'order' && item['chatName'] == chatId) || (item.messageType == 'order' && chatId == '')){
+                    let detailsObj = await this.session.getOrderDetails(item['metadata.orderId'], item['metadata.token']);
+                    let itemObj = {
+                        id: item['metadata.orderId'],
+                        token: item['metadata.token'],
+                        title: item['metadata.orderTitle'],
+                        sellerJid: item['metadata.sellerJid'],
+                        itemCount: item['metadata.itemCount'],
+                        price: item['metadata.price'],
+                        currency: item['metadata.currency'],
+                        time: item.time,
+                        timeFormatted: item.timeFormatted,
+                        chatId: item.chatName,
+                        products: detailsObj.products
+                    };
+                    orders.push(itemObj)
+                } 
+            }));
+          
+            await orders.sort(function(a,b): any {
+                return Number(b.time) > Number(a.time) ? -1 : 1
+            });
+            orders.reverse();
+
+            // // Start Pagination
+            // let page = req.query.page ?? 1;
+            // let page_size = req.query.page_size ?? 100;
+            // let paginatedMessage = await this.paginateData(orders,page,page_size)
+            this.response(res, 200, true, 'Orders Found !!!', orders)
+        } catch {
+            this.response(res, 500, false, 'Failed to load Orders.')
+        }
+    }
+
     async getOrder(req, res) {
         const { orderId, orderToken } = req.body
         try {
