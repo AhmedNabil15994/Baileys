@@ -16,30 +16,6 @@ export default class WLWebhook extends Helper {
         this.Redis = new WLRedis();
     }
 
-    async MessageUpsert(sessionId, message) {
-        try {
-            await this.Redis.setOne(sessionId, message,'messages');
-            message.status = message.status - 1;
-            let newMessage = JSON.stringify(message)
-            await this.needle.post(
-                this.base_url,
-                {
-                    conversation: {
-                        id: message.remoteJid,
-                        lastTime: message.time,
-                        lastMessage: newMessage,
-                    },
-                    sessionId,
-                },
-                (err, resp, body) => {
-                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook MessageUpsert : ' + body) : '';
-                }
-            )
-        } catch (error) {
-            console.log('WLWebhook MessageUpsert : ' + error)
-        }
-    }
-
     async appLogOut(sessionId) {
         try {
             var requestOptions = {
@@ -75,6 +51,30 @@ export default class WLWebhook extends Helper {
                 });
         } catch (error) {
             console.log('WLWebhook connectionConnected : ' + error)
+        }
+    }
+
+    async MessageUpsert(sessionId, message) {
+        try {
+            await this.Redis.setOne(sessionId, message,'messages');
+            message.status = message.status - 1;
+            let newMessage = JSON.stringify(message)
+            await this.needle.post(
+                this.base_url,
+                {
+                    conversation: {
+                        id: message.remoteJid,
+                        lastTime: message.time,
+                        lastMessage: newMessage,
+                    },
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook MessageUpsert : ' + body) : '';
+                }
+            )
+        } catch (error) {
+            console.log('WLWebhook MessageUpsert : ' + error)
         }
     }
 
@@ -192,6 +192,53 @@ export default class WLWebhook extends Helper {
         // })
         // hide undefined function
         // await addDataToFile(sessionId, m[0], 'chatDeleted')
+    }
+
+    async newGroup(sessionId, chat) {
+        try {
+            await this.needle.post(
+                this.base_url,
+                {
+                    conversation: {
+                        data: {
+                            id: chat.id,
+                            subject: chat.subject,
+                            creation: chat.creation,
+                            owner: chat.owner,
+                            restrict: chat.restrict,
+                            announce: chat.announce,
+                            participants: chat.participants,
+                        },
+                    },
+                    isGroup:1,
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook newGroup : ' + body) : '';
+                }
+            )
+        } catch (error) {
+            console.log('WLWebhook New Group : ' + error)
+        }
+    }
+
+    async updateGroup(sessionId, chat) {
+        try {
+            await this.needle.post(
+                this.base_url,
+                {
+                    conversationUpdate: {
+                        data: chat,
+                    },
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook updateGroup : ' + body) : '';
+                }
+            )
+        } catch (error) {
+            console.log('WLWebhook Update Group : ' + error)
+        }
     }
 
     async setNewContact(sessionId, contact) {

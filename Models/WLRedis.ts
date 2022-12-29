@@ -285,6 +285,12 @@ export default class WLRedis extends Helper {
         jsonCache.clearAll();
         (process.env.DEBUG_MODE == 'true') ? console.log('WLRedis deleteSession') : '';
     }
+
+    async empty(session_id,instance) {
+        const jsonCache = new JSONCache(this.redis, { prefix: `${session_id}:${instance}:` });
+        jsonCache.clearAll();
+        (process.env.DEBUG_MODE == 'true') ? console.log('WLRedis delete Instance Data') : '';
+    }
 //---------------------------------------------------------------------------------------------------------------------//
     // Set One
     // async setContact(session_id, contact) {

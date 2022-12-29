@@ -301,11 +301,6 @@ const createSession = async (sessionId, res = null) => {
 				if (events['chats.update']) {
 					const m = events['chats.update'];
 					m.forEach(async function(item){
-						// try {
-						// 	(m[0].id !== 'status@broadcast') ? await Webhook.ChatsUpdate(sessionId, m[0]) : '';
-						// } catch (e) {
-						// 	(process.env.DEBUG_MODE == 'true') ? console.log('chats.update error', e) : '';
-						// }
 						try {
 							(item.id !== 'status@broadcast') ? await Webhook.ChatsUpdate(sessionId, item) : '';
 						} catch (e) {
@@ -384,15 +379,34 @@ const createSession = async (sessionId, res = null) => {
 				}
 
 				if (events['groups.upsert']) {
-					// console.log(events['groups.upsert'])
+					const m = events['groups.upsert'];
+					try {
+						await Webhook.newGroup(sessionId, m[0])
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('groups.upsert error', e) : '';
+					}
 				}
 
-				if (events['groups.update']) {
-					// console.log(events['groups.update'])
+				if (events['group.update']) {
+					const m = events['group.update'];
+					try {
+						await Webhook.updateGroup(sessionId, m[0])
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('groups.update error', e) : '';
+					}
 				}
 
 				if (events['group-participants.update']) {
-					// console.log(events['group-participants.update'])
+					const m = events['group-participants.update'];
+					try {
+						await Webhook.updateGroup(sessionId, m)
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('group-participants.update error', e) : '';
+					}
+				}
+
+				if (events['call']) {
+					console.log('recv call event', events['call'])
 				}
 
 				if (events['blocklist.set']) {
@@ -406,7 +420,7 @@ const createSession = async (sessionId, res = null) => {
 				if(events['labels.set']){
 					const m = events['labels.set']
 					try {
-						await Webhook.setLabel(sessionId, m[0]);
+						await Redis.setData(sessionId, m,'labels');
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('labels.set error', e) : '';
 					}
@@ -419,15 +433,12 @@ const createSession = async (sessionId, res = null) => {
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('labels.set error', e) : '';
 					}
-					// console.log(m)
 				}
 
 				if(events['quick_reply.set']){
 					const m = events['quick_reply.set']
 					try {
-					// console.log('quick_reply.set')
-					// console.log(m)
-						await Webhook.setReply(sessionId, m[0]);
+						await Redis.setData(sessionId, m,'replies');
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('quick_reply.set error', e) : '';
 					}
@@ -440,15 +451,7 @@ const createSession = async (sessionId, res = null) => {
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('quick_reply.set error', e) : '';
 					}
-					// console.log(m)
 				}
-
-				if (events['call']) {
-					console.log('recv call event', events['call'])
-				}
-
-
-
 			}
 		)
 		// TODO: Send when any message or any action doing in whatsapp
