@@ -449,7 +449,6 @@ export default class Helper {
                 text = 'groupInvitationMessage'
             }else if(
                 msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
-                msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail') && 
                 msgObj.message.extendedTextMessage.hasOwnProperty('description') && 
                 !msgObj.message.extendedTextMessage.hasOwnProperty('previewType')
             ){
@@ -582,7 +581,6 @@ export default class Helper {
                 }
             }else if(
                 msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
-                msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail') && 
                 msgObj.message.extendedTextMessage.hasOwnProperty('description') && 
                 !msgObj.message.extendedTextMessage.hasOwnProperty('previewType')
             ){

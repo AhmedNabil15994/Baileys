@@ -312,6 +312,7 @@ const createSession = async (sessionId, res = null) => {
 
 				if (events['chats.labeled']) {
 					const m = events['chats.labeled'];
+					// console.log(m)
 					try {
 						await Webhook.ChatsUpdate(sessionId, m[0])
 					} catch (e) {

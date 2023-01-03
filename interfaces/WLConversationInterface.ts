@@ -16,5 +16,5 @@ export default interface WLConversationInterface {
   muted?:boolean,
   mutedUntil?:string,
   labeled?:string,
-  labels?:string,
+  labels?:array,
 }

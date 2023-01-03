@@ -16,5 +16,8 @@ export default interface WLMessageInterface {
 	expirationFormatted: string,
 	expiration: string,
 	remoteJid?: string,
-	metadata: array
+	metadata: array,
+	labeled?:string,
+	starred?:string,
+  	labels?:array,
 }

@@ -69,10 +69,10 @@ export default class WLRedis extends Helper {
     // Update One
     async updateOne(session_id,instanceData,dbInstance) {
         try {
-            let dataObj = await this.getOne(session_id,instanceData.id,dbInstance)
-            
+            let dataObj 
             if(dbInstance == 'contacts' || dbInstance == 'contact'){
-                 if(instanceData.hasOwnProperty('notify')){
+                dataObj = await this.getOne(session_id,instanceData.id,dbInstance)
+                if(instanceData.hasOwnProperty('notify')){
                     dataObj['notify'] = instanceData.notify
                 }
                 if(instanceData.hasOwnProperty('image')){
@@ -81,27 +81,8 @@ export default class WLRedis extends Helper {
                 if(instanceData.hasOwnProperty('name')){
                     dataObj['name'] = instanceData.name
                 }
-            }else if(dbInstance == 'messages' || dbInstance == 'message'){
-                let messageObj,message_id;
-                if(instanceData.hasOwnProperty('labeled')){
-                    message_id = instanceData.id;
-                    messageObj = await this.getOne(session_id,message_id,'messages');
-                    messageObj['labeled'] = instanceData.labeled ? instanceData.label_id : 0;
-                    // messageObj['metadata']['labels'][instanceData.label_id] = instanceData.labeled
-                }else if(instanceData.update.hasOwnProperty('starred')){
-                    message_id = instanceData.hasOwnProperty('key') ? instanceData.key.id : instanceData.id;
-                    messageObj = await this.getOne(session_id,message_id,'messages');
-                    messageObj['starred'] = instanceData.update.starred;
-                }else{
-                    message_id = instanceData.hasOwnProperty('key') ? instanceData.key.id : instanceData.id;
-                    messageObj = await this.getOne(session_id,message_id,'messages');
-                    let statusInt = instanceData.update.hasOwnProperty('message') ? 6 : instanceData.update.status;
-                    let statusText = this.formatStatusText(statusInt)
-                    messageObj['status'] = statusInt;
-                    messageObj['statusText'] = statusText;
-                }
-                dataObj = messageObj
             }else if(dbInstance == 'chats' || dbInstance == 'chat'){
+                dataObj = await this.getOne(session_id,instanceData.id,dbInstance)
                 if(instanceData.hasOwnProperty('conversationTimestamp')){
                     dataObj['last_time'] = instanceData.conversationTimestamp
                 }
@@ -126,14 +107,29 @@ export default class WLRedis extends Helper {
                     }
                 }
                 if(instanceData.hasOwnProperty('labeled')){
-                    dataObj['labeled'] = instanceData.labeled ? instanceData.label_id : 0;
-                    if(instanceData.labeled){
-                        dataObj['labels'] = dataObj['labels'] && dataObj['labels'].indexOf(instanceData.label_id+',') == -1  ? (dataObj['labels']+instanceData.label_id+',') : (instanceData.label_id+',')
-                    }else{
-                        dataObj['labels'] = dataObj['labels'].replace( (instanceData.label_id+',') , '' )                        
-                    }
+                    dataObj['labels.'+instanceData.label_id] = instanceData.labeled;
                 }
-            }            
+            }else if(dbInstance == 'messages' || dbInstance == 'message'){
+                let messageObj,message_id;
+                if(instanceData.hasOwnProperty('labeled')){
+                    message_id = instanceData.id;
+                    messageObj = await this.getOne(session_id,message_id,'messages');
+                    messageObj['labeled'] = instanceData.labeled ? instanceData.label_id : 0;
+                    messageObj['labels.'+instanceData.label_id] = instanceData.labeled;
+                }else if(instanceData.update.hasOwnProperty('starred')){
+                    message_id = instanceData.hasOwnProperty('key') ? instanceData.key.id : instanceData.id;
+                    messageObj = await this.getOne(session_id,message_id,'messages');
+                    messageObj['starred'] = instanceData.update.starred;
+                }else{
+                    message_id = instanceData.hasOwnProperty('key') ? instanceData.key.id : instanceData.id;
+                    messageObj = await this.getOne(session_id,message_id,'messages');
+                    let statusInt = instanceData.update.hasOwnProperty('message') ? 6 : instanceData.update.status;
+                    let statusText = this.formatStatusText(statusInt)
+                    messageObj['status'] = statusInt;
+                    messageObj['statusText'] = statusText;
+                }
+                dataObj = messageObj
+            }         
 
             await this.setOne(session_id,dataObj,dbInstance)
             return dataObj ?? null;

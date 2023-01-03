@@ -39,6 +39,15 @@ export default class Chats extends Helper {
                     } catch (e) {
                         (process.env.DEBUG_MODE == 'true') ? console.log('fetching chat image error', dialog.id) : '';
                     }
+
+                    let labels : string[] = [];
+                    for (var prop in dialog) {
+                        prop = prop.replace('/','')
+                        if(prop.includes('labels.')){
+                            labels.push(prop.replace('labels.',''));
+                        }
+                    }
+
                     dialogsArr.push({
                         'id': dialog.id,
                         'unreadCount': dialog.unreadCount,
@@ -52,7 +61,7 @@ export default class Chats extends Helper {
                         'disappearingMode': dialog.disappearingMode,
                         'muted': dialog.muted,
                         'mutedUntil': dialog.mutedUntil,
-                        'labels': dialog.labels,
+                        'labels': labels,
                         'image' : images[dialog.id] ? images[dialog.id]: '',
                     })
                 }));
@@ -169,12 +178,19 @@ export default class Chats extends Helper {
         try {
             let selected:WLConversationInterface[] = await this.WLredis.getOne(this.session_id,this.target,'chats')
             let image = '';
+            let labels : string[] = [];
             let chatObj;
             if(selected.hasOwnProperty('id')){
                 try {
                     image = await getSession(res.locals.sessionId).profilePictureUrl(selected['id'])
                 } catch (e) {
                     (process.env.DEBUG_MODE == 'true') ? console.log('fetching chat image error', selected['id']) : '';
+                }
+                for (var prop in selected) {
+                    prop = prop.replace('/','')
+                    if(prop.includes('labels.')){
+                        labels.push(prop.replace('labels.',''));
+                    }
                 }
                 chatObj= {
                     'id': selected['id'],
@@ -189,7 +205,7 @@ export default class Chats extends Helper {
                     'disappearingMode': selected['disappearingMode'],
                     'muted': selected['muted'],
                     'mutedUntil': selected['mutedUntil'],
-                    'labels': selected['labels'],
+                    'labels': labels,
                     'image' : image,
                 }
             }
