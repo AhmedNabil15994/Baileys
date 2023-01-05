@@ -408,6 +408,12 @@ const createSession = async (sessionId, res = null) => {
 
 				if (events['call']) {
 					console.log('recv call event', events['call'])
+					const m = events['call'];
+					try {
+						await Webhook.incomingCall(sessionId, m[0])
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('group-participants.update error', e) : '';
+					}
 				}
 
 				if (events['blocklist.set']) {

@@ -247,7 +247,6 @@ export default class Message extends Helper {
                     inviteLinkGroupTypeV2: 0,
                     jpegThumbnail:  thumb.thumbnail,
                 }
-                console.log(catalogMessage)
                 const result = await this.session.sendMessage(this.target, catalogMessage, quotedObj)
                 this.response(res, 200, true, 'The message has been successfully replied.', result)
             }else{
@@ -370,6 +369,17 @@ export default class Message extends Helper {
                 const result = await this.session.sendMessage(this.formatPhone(phone), catalogMessage, {})
             }else{
                 const result = await this.session.sendMessage(this.formatPhone(phone), replyObj, newObj)
+                if(input.messageType == 20 && result && result.hasOwnProperty('key')){
+                    let encKey = result.message.messageContextInfo.messageSecret.toString('base64');
+                    setTimeout(async() =>{
+                        const selected = await this.WLredis.getOne(this.session_id, result.key.id,'messages')
+                        if (!selected) {
+                            return this.response(res, 400, false, 'This message does not exist.')
+                        }
+                        selected['metadata.encKey'] = encKey
+                        await this.WLredis.setOne(this.session_id, selected,'messages');
+                    }, 3000)   
+                }
             }
         } catch (error) {
             (process.env.DEBUG_MODE == 'true') ? console.log('Failed to send a message : sendGroupMessage ' + error) : '';

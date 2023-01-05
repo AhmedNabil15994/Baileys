@@ -54,6 +54,52 @@ export default class WLWebhook extends Helper {
         }
     }
 
+    async incomingCall(sessionId,call){
+        try {
+            let message = {
+                id: call.id,
+                body: 'Call From ' + call.from.replace('@s.whatsapp.net',''),
+                messageType: 'call',
+                remoteJid: call.from,
+                fromMe: false,  
+                author: call.from.replace('@s.whatsapp.net',''),
+                chatName: call.from.replace('@s.whatsapp.net',''), 
+                pushName: call.from.replace('@s.whatsapp.net',''), 
+                status: 2,
+                time: (new Date(call.date)).getTime() / 1000,
+                timeFormatted: new Date(call.date).toUTCString(),
+                statusText: "Sent",
+                deviceSentFrom: "web",
+                metadata: { 
+                    offline: call.offline,
+                    status: call.status,
+                    isVideo: call.isVideo,
+                    isGroup: call.isGroup,
+                }
+            }
+            await this.Redis.setOne(sessionId, message,'messages');
+
+            message.status = message.status - 1;
+            let newMessage = JSON.stringify(message)
+            await this.needle.post(
+                this.base_url,
+                {
+                    conversation: {
+                        id: message.remoteJid,
+                        lastTime: message.time,
+                        lastMessage: newMessage,
+                    },
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook MessageUpsert : ' + body) : '';
+                }
+            )
+        } catch (error) {
+            console.log('WLWebhook MessageUpsert : ' + error)
+        }
+    }
+
     async MessageUpsert(sessionId, message) {
         try {
             await this.Redis.setOne(sessionId, message,'messages');
