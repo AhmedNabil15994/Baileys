@@ -189,6 +189,25 @@ export default class WLWebhook extends Helper {
         }
     }
 
+    async updatePresence(sessionId,presence){
+        try {
+            await this.needle.post(
+                this.base_url,
+                {
+                    conversationPresence: {
+                        data: presence,
+                    },
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook Presence Update : ' + body) : '';
+                }
+            )
+        } catch (error) {
+            console.log('WLWebhook Presence Update : ' + error)
+        }
+    }
+
     async ChatsUpdate(sessionId, chat) {
         try {
             await this.Redis.updateOne(sessionId, chat,'chats');
@@ -216,28 +235,20 @@ export default class WLWebhook extends Helper {
     }
 
     async ChatsDelete(sessionId, chat) {
-        await this.Redis.deleteOne(sessionId, chat,'chats');
+        await this.Redis.deleteOne(sessionId, {id:chat},'chats');
         await this.needle.post(
             this.base_url,
             {
-                chatDeleted: {
+                conversationDelete: {
                     id: chat,
                     deleted:true,
                 },
                 sessionId,
             },
             (err, resp, body) => {
-                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook ChatsDelete : ' + body) : '';
+                (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook ChatsDelete : ' + body) : '';
             }
         )
-        // TODO: Send Delete To Redis
-        // await processRedisData(client, sessionId + "_conversations", {
-        //  id: m[0].id,
-        //  deleted_by: 1,
-        //  deleted_at: Math.floor(Date.now() / 1000)
-        // })
-        // hide undefined function
-        // await addDataToFile(sessionId, m[0], 'chatDeleted')
     }
 
     async newGroup(sessionId, chat) {
@@ -284,6 +295,90 @@ export default class WLWebhook extends Helper {
             )
         } catch (error) {
             console.log('WLWebhook Update Group : ' + error)
+        }
+    }
+
+    async setLabels(sessionId,labels){
+        try{
+            await this.Redis.setData(sessionId, labels,'labels');
+            await this.needle.post(
+                this.base_url,
+                {
+                    business: {
+                        data: JSON.stringify(labels),
+                        type: 'labels-set',
+                    },
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook set labels : ' + body) : '';
+                }
+            )
+        }catch(error){
+            console.log('WLWebhook setLabels : ' + error)
+        }
+    }
+
+    async deleteLabel(sessionId, label_id) {
+        try {
+            await this.Redis.deleteOne(sessionId, label_id,'labels');
+            await this.needle.post(
+                this.base_url,
+                {
+                    business: {
+                        data: label_id,
+                        type: 'labels-delete',
+                    },
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook delete label : ' + body) : '';
+                }
+            )
+        } catch (error) {
+            console.log('WLWebhook deleteLabel : ' + error)
+        }
+    }
+
+    async setReplies(sessionId,replies){
+        try{
+            await this.Redis.setData(sessionId, replies,'replies');
+            await this.needle.post(
+                this.base_url,
+                {
+                    business: {
+                        data: JSON.stringify(replies),
+                        type: 'replies-set',
+                    },
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook set replies : ' + body) : '';
+                }
+            )
+        }catch(error){
+            console.log('WLWebhook setReplies : ' + error)
+        }
+    }
+
+    async deleteReply(sessionId, reply_id) {
+        try {
+            await this.Redis.deleteOne(sessionId, reply_id,'replies');
+            await this.needle.post(
+                this.base_url,
+                {
+                    business: {
+                        data: reply_id,
+                        type: 'replies-delete',
+                    },
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook delete reply : ' + body) : '';
+                }
+            )
+        } catch (error) {
+            console.log('WLWebhook deleteReply : ' + error)
         }
     }
 
@@ -343,14 +438,6 @@ export default class WLWebhook extends Helper {
         }
     }
 
-    async deleteLabel(sessionId, label_id) {
-        try {
-            await this.Redis.deleteOne(sessionId, label_id,'labels');
-        } catch (error) {
-            console.log('WLWebhook deleteLabel : ' + error)
-        }
-    }
-
     async setReply(sessionId, reply) {
         try {
             await this.Redis.setOne(sessionId, reply,'replies');
@@ -364,14 +451,6 @@ export default class WLWebhook extends Helper {
             await this.Redis.updateOne(sessionId, reply,'replies');
         } catch (error) {
             console.log('WLWebhook updateReply : ' + error)
-        }
-    }
-
-    async deleteReply(sessionId, reply_id) {
-        try {
-            await this.Redis.deleteOne(sessionId, reply_id,'replies');
-        } catch (error) {
-            console.log('WLWebhook deleteReply : ' + error)
         }
     }
 }

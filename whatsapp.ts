@@ -282,11 +282,6 @@ const createSession = async (sessionId, res = null) => {
 					}
 				}
 
-				if (events['messages.delete']) {
-					const m = events['messages.delete']
-					console.log(m)
-				}
-
 				// chat history received
 				if (events['chats.set']) {
 					const { chats } = events['chats.set']
@@ -307,12 +302,10 @@ const createSession = async (sessionId, res = null) => {
 							(process.env.DEBUG_MODE == 'true') ? console.log('chats.update error', e) : '';
 						}
 					});
-					
 				}
 
 				if (events['chats.labeled']) {
 					const m = events['chats.labeled'];
-					// console.log(m)
 					try {
 						await Webhook.ChatsUpdate(sessionId, m[0])
 					} catch (e) {
@@ -320,21 +313,15 @@ const createSession = async (sessionId, res = null) => {
 					}
 				}
 
-				// While Chats Deleted From API
 				if (events['chats.delete']) {
 					const m = events['chats.delete']
-					// console.log(m[0])
-					try {
-						// await Webhook.ChatsDelete(sessionId, m[0])
-					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('chats.delete error', e) : '';
-					}
-				}
-
-				if (events['chats.deleted']) {
-					const m = events['chats.deleted']
-					console.log('deleted')
-					console.log(m)
+					m.forEach(async function(item){
+						try {
+							await Webhook.ChatsDelete(sessionId, item)
+						} catch (e) {
+							(process.env.DEBUG_MODE == 'true') ? console.log('chats.delete error', e) : '';
+						}
+					});
 				}
 
 				// contact history received
@@ -375,8 +362,24 @@ const createSession = async (sessionId, res = null) => {
 					// console.log(events['messages.reaction'])
 				}
 
+				if (events['messages.delete']) {
+					// console.log(events['messages.delete'])
+				}
+
+				if (events['blocklist.set']) {
+					// console.log(events['blocklist.set'])
+				}
+
+				if (events['blocklist.update']) {
+					// console.log(events['blocklist.update'])
+				}
+
 				if (events['presence.update']) {
-					// console.log(events['presence.update'])
+					try {
+						await Webhook.updatePresence(sessionId, events['presence.update']);
+					} catch (e) {
+						(process.env.DEBUG_MODE == 'true') ? console.log('contacts.update error', e) : '';
+					}
 				}
 
 				if (events['groups.upsert']) {
@@ -407,7 +410,6 @@ const createSession = async (sessionId, res = null) => {
 				}
 
 				if (events['call']) {
-					console.log('recv call event', events['call'])
 					const m = events['call'];
 					try {
 						await Webhook.incomingCall(sessionId, m[0])
@@ -416,18 +418,10 @@ const createSession = async (sessionId, res = null) => {
 					}
 				}
 
-				if (events['blocklist.set']) {
-					console.log(events['blocklist.set'])
-				}
-
-				if (events['blocklist.update']) {
-					console.log(events['blocklist.update'])
-				}
-
 				if(events['labels.set']){
 					const m = events['labels.set']
 					try {
-						await Redis.setData(sessionId, m,'labels');
+						await Webhook.setLabels(sessionId, m);
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('labels.set error', e) : '';
 					}
@@ -438,14 +432,14 @@ const createSession = async (sessionId, res = null) => {
 					try {
 						await Webhook.deleteLabel(sessionId, m[0]);
 					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('labels.set error', e) : '';
+						(process.env.DEBUG_MODE == 'true') ? console.log('labels.delete error', e) : '';
 					}
 				}
 
 				if(events['quick_reply.set']){
 					const m = events['quick_reply.set']
 					try {
-						await Redis.setData(sessionId, m,'replies');
+						await Webhook.setReplies(sessionId, m);
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('quick_reply.set error', e) : '';
 					}
@@ -456,7 +450,7 @@ const createSession = async (sessionId, res = null) => {
 					try {
 						await Webhook.deleteReply(sessionId, m[0]);
 					} catch (e) {
-						(process.env.DEBUG_MODE == 'true') ? console.log('quick_reply.set error', e) : '';
+						(process.env.DEBUG_MODE == 'true') ? console.log('quick_reply.delete error', e) : '';
 					}
 				}
 			}

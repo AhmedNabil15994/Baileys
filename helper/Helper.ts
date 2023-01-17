@@ -1160,7 +1160,7 @@ export default class Helper {
             body:'',
             messageType:'',
             fromMe: msg.key.fromMe,
-            author: msg.key.fromMe == 1 ? 'Me' : this.reformatPhone(msg.key.remoteJid, msg.participant),
+            author: msg.key.fromMe == 1 ? 'Me' : (msg.key.remoteJid.endsWith('@g.us') ? this.reformatPhone(msg.key.participant) : this.reformatPhone(msg.key.remoteJid, msg.participant)),
             chatName: this.reformatPhone(msg.key.remoteJid),
             pushName: msg.pushName ? msg.pushName : this.reformatPhone(msg.key.remoteJid),     
             time,
