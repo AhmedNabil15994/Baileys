@@ -12,13 +12,15 @@ export default class WLRedis extends Helper {
     private redis;
     constructor() {
         super();
-        this.redis = new Redis({
-            port: 6379, // Redis port
-            host: "127.0.0.1", // Redis host
-            // username: "default", // needs Redis >= 6
-            // password: "my-top-secret",
-            // db: 0, // Defaults to 0
-        })
+        if(!this.hasOwnProperty('redis')){
+            this.redis = new Redis({
+                port: 6379, // Redis port
+                host: "127.0.0.1", // Redis host
+                // username: "default", // needs Redis >= 6
+                // password: "my-top-secret",
+                // db: 0, // Defaults to 0
+            })
+        }
     }
 
     // instance = [

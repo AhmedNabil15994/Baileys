@@ -72,8 +72,8 @@ const createSession = async (sessionId, res = null) => {
 		// Fetch latest version of WA Web
 		const { version } = await fetchLatestBaileysVersion()
 		let browser;
-		if ((process.env.BROWSER == 'Whatsloop')) {
-			// browser = Browsers.Whatsloop('safari');
+		if ((process.env.BROWSER == 'myWhats')) {
+			// browser = Browsers.myWhats('safari');
 			browser = Browsers.appropriate('safari');
 		} else {
 			browser = Browsers.appropriate('safari');
