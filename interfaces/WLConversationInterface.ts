@@ -12,9 +12,10 @@ export default interface WLConversationInterface {
     initiator: string
   },
   unreadMentionCount: number,
-  image?:string,
   muted?:boolean,
   mutedUntil?:string,
   labeled?:string,
-  labels?:array,
+  labels?:{
+    
+  },
 }
