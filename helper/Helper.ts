@@ -453,6 +453,7 @@ export default class Helper {
             ){
                 text = 'catalogMessage'
             }else if(
+                msgObj.message.extendedTextMessage.hasOwnProperty('matchedText') &&
                 !msgObj.message.extendedTextMessage.matchedText.includes('https://chat.whatsapp.com') &&
                 !msgObj.message.extendedTextMessage.matchedText.includes('https://wa.me/c')
             ){
@@ -584,6 +585,7 @@ export default class Helper {
                 }
             }else if(
                 // Link with preview
+                msgObj.message.extendedTextMessage.hasOwnProperty('matchedText') &&
                 !msgObj.message.extendedTextMessage.matchedText.includes('https://chat.whatsapp.com') &&
                 !msgObj.message.extendedTextMessage.matchedText.includes('https://wa.me/c')
             ){
