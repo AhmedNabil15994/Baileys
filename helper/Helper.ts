@@ -443,25 +443,18 @@ export default class Helper {
             ){
                 text = 'text'
             }else if(
-                msgObj.message.extendedTextMessage.description != null &&
-                msgObj.message.extendedTextMessage.description == 'WhatsApp Group Invite'
+                msgObj.message.extendedTextMessage.matchedText.includes('https://chat.whatsapp.com')
+                // Also don't have canonicalUrl
             ){
                 text = 'groupInvitationMessage'
             }else if(
-                msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
-                msgObj.message.extendedTextMessage.hasOwnProperty('description') && 
-                !msgObj.message.extendedTextMessage.hasOwnProperty('previewType')
+                msgObj.message.extendedTextMessage.matchedText.includes('https://wa.me/c')
+                //  don't have previewType
             ){
                 text = 'catalogMessage'
             }else if(
-                (msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
-                msgObj.message.extendedTextMessage.previewType == 0 && 
-                msgObj.message.extendedTextMessage.matchedText != '') || (
-                    msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
-                    msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail') && 
-                    msgObj.message.extendedTextMessage.hasOwnProperty('description') &&
-                    msgObj.message.extendedTextMessage.description != ''
-                )
+                !msgObj.message.extendedTextMessage.matchedText.includes('https://chat.whatsapp.com') &&
+                !msgObj.message.extendedTextMessage.matchedText.includes('https://wa.me/c')
             ){
                 text = 'linkWithPreview'
             }else{
@@ -569,8 +562,8 @@ export default class Helper {
                     isForwarded: msgObj.message.extendedTextMessage.contextInfo.isForwarded
                 }
             }else if(
-                msgObj.message.extendedTextMessage.description != null &&
-                msgObj.message.extendedTextMessage.description == 'WhatsApp Group Invite'
+                // Group Invite
+                msgObj.message.extendedTextMessage.matchedText.includes('https://chat.whatsapp.com')
             ){
                 dataObj.body =  msgObj.message.extendedTextMessage.text
                 dataObj['metadata'] = {
@@ -580,9 +573,8 @@ export default class Helper {
                     expiration: 0,
                 }
             }else if(
-                msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
-                msgObj.message.extendedTextMessage.hasOwnProperty('description') && 
-                !msgObj.message.extendedTextMessage.hasOwnProperty('previewType')
+                // Catalog Message
+                msgObj.message.extendedTextMessage.matchedText.includes('https://wa.me/c')
             ){
                 dataObj.body =  msgObj.message.extendedTextMessage.text
                 dataObj['metadata'] = {
@@ -591,14 +583,9 @@ export default class Helper {
                     description: msgObj.message.extendedTextMessage.description,
                 }
             }else if(
-                (msgObj.message.extendedTextMessage.hasOwnProperty('previewType') &&
-                msgObj.message.extendedTextMessage.previewType == 0 && 
-                msgObj.message.extendedTextMessage.matchedText != '') || (
-                    msgObj.message.extendedTextMessage.hasOwnProperty('canonicalUrl') &&
-                    msgObj.message.extendedTextMessage.hasOwnProperty('jpegThumbnail') && 
-                    msgObj.message.extendedTextMessage.hasOwnProperty('description') &&
-                    msgObj.message.extendedTextMessage.description != ''
-                )
+                // Link with preview
+                !msgObj.message.extendedTextMessage.matchedText.includes('https://chat.whatsapp.com') &&
+                !msgObj.message.extendedTextMessage.matchedText.includes('https://wa.me/c')
             ){
                 dataObj.body =  msgObj.message.extendedTextMessage.text
                 dataObj['metadata'] = {
