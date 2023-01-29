@@ -214,20 +214,20 @@ export default class WLWebhook extends Helper {
     async ChatsUpdate(sessionId, chat) {
         try {
             await this.Redis.updateOne(sessionId, chat,'chats');
-            if(!chat.hasOwnProperty('conversationTimestamp') && !chat.hasOwnProperty('unreadCount')){
-                await this.needle.post(
-                    this.base_url,
-                    {
-                        conversationStatus: {
-                            data: chat,
-                        },
-                        sessionId,
+            // if(!chat.hasOwnProperty('conversationTimestamp') && !chat.hasOwnProperty('unreadCount')){
+            await this.needle.post(
+                this.base_url,
+                {
+                    conversationStatus: {
+                        data: chat,
                     },
-                    (err, resp, body) => {
-                        (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook ChatsUpdate : ' + body) : '';
-                    }
-                )
-            }
+                    sessionId,
+                },
+                (err, resp, body) => {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook ChatsUpdate : ' + body) : '';
+                }
+            )
+            // }
             
             // TODO: Send Updates To Redis
             // M[0]['image'] = await getSession(sessionId).profilePictureUrl(m[0].id, 'image')
