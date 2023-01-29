@@ -191,18 +191,18 @@ export default class WLWebhook extends Helper {
 
     async updatePresence(sessionId,presence){
         try {
-            await this.needle.post(
-                this.base_url,
-                {
-                    conversationPresence: {
-                        data: presence,
-                    },
-                    sessionId,
-                },
-                (err, resp, body) => {
-                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook Presence Update : ' + body) : '';
-                }
-            )
+            // await this.needle.post(
+            //     this.base_url,
+            //     {
+            //         conversationPresence: {
+            //             data: presence,
+            //         },
+            //         sessionId,
+            //     },
+            //     (err, resp, body) => {
+            //         (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook Presence Update : ' + body) : '';
+            //     }
+            // )
         } catch (error) {
             console.log('WLWebhook Presence Update : ' + error)
         }
@@ -211,18 +211,21 @@ export default class WLWebhook extends Helper {
     async ChatsUpdate(sessionId, chat) {
         try {
             await this.Redis.updateOne(sessionId, chat,'chats');
-            await this.needle.post(
-                this.base_url,
-                {
-                    conversationStatus: {
-                        data: chat,
+            if(!chat.hasOwnProperty('conversationTimestamp') && !chat.hasOwnProperty('unreadCount')){
+                await this.needle.post(
+                    this.base_url,
+                    {
+                        conversationStatus: {
+                            data: chat,
+                        },
+                        sessionId,
                     },
-                    sessionId,
-                },
-                (err, resp, body) => {
-                    (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook ChatsUpdate : ' + body) : '';
-                }
-            )
+                    (err, resp, body) => {
+                        (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook ChatsUpdate : ' + body) : '';
+                    }
+                )
+            }
+            
             // TODO: Send Updates To Redis
             // M[0]['image'] = await getSession(sessionId).profilePictureUrl(m[0].id, 'image')
             // await processRedisData(sessionId, "conversations", m[0])
