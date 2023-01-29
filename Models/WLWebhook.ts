@@ -166,22 +166,25 @@ export default class WLWebhook extends Helper {
                 await this.Redis.updateOne(sessionId, message,'messages');
             }else{
                 let msgStatus = message.update.hasOwnProperty('message') ? 6 : message.update.status;
-                await this.needle.post(
-                    this.base_url,
-                    {
-                        messageStatus: {
-                            id: message.key.id,
-                            status: msgStatus,
-                            statusText: this.formatStatusText(msgStatus),
-                            fromMe: message.key.fromMe,
-                            chatId: message.key.remoteJid,
+                let oldMsg = await this.Redis.getOne(sessionId,message.key.id,'messages');
+                if(msgStatus > parseInt(oldMsg.status)){
+                    await this.needle.post(
+                        this.base_url,
+                        {
+                            messageStatus: {
+                                id: message.key.id,
+                                status: msgStatus,
+                                statusText: this.formatStatusText(msgStatus),
+                                fromMe: message.key.fromMe,
+                                chatId: message.key.remoteJid,
+                            },
+                            sessionId,
                         },
-                        sessionId,
-                    },
-                    (err, resp, body) => {
-                        (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook MessageUpdates : ' + body) : '';
-                    }
-                )
+                        (err, resp, body) => {
+                            (process.env.DEBUG_MODE == 'true') ? console.log('WLWebhook MessageUpdates : ' + body) : '';
+                        }
+                    )
+                }
                 await this.Redis.updateOne(sessionId, message,'messages');
             }
         } catch (error) {
