@@ -132,7 +132,7 @@ export default class Chats extends Helper {
                         if(Number(dialog.pinned) > 0){
                             pinned.push(dataObj)
                         }else{
-                            if(dataObj.lastMessage.length > 0){
+                            if(messages.length > 0){
                                 notPinned.push(dataObj)
                             }
                         }
