@@ -79,6 +79,21 @@ export default class Chats extends Helper {
 
     async myChats(req, res) {
         try {
+            let lastChats = [];
+            let messages = await this.WLredis.getData(this.session_id,'messages');
+            await messages.sort(function(a,b): any {
+                return Number(b.time) > Number(a.time) ? -1 : 1
+            });
+            messages.reverse();
+
+            await Promise.all(Object.values(messages).map(async (element) => {
+                if(lastChats.length < 30 && !lastChats.includes(element.remoteJid) ){
+                    lastChats.push(element.remoteJid)
+                }
+            }));
+            console.log(lastChats)
+
+
             let dialogs: any[] = await this.WLredis.getData(this.session_id,'chats');
             let pinned: any[] = []
             let notPinned: any[] = []
