@@ -137,7 +137,7 @@ export default class Chats extends Helper {
                     }
                 }));
             }
-            
+         
             pinned.sort(function(a,b): any {
                 return Number(a.pinned) > Number(b.pinned) ? -1 : 1
             });
@@ -167,11 +167,12 @@ export default class Chats extends Helper {
             }));  
 
 
-            // notPinned.sort(function(a,b) {
-            //     let aHas: any = typeof a.lastMessage !== 'undefined';
-            //     let bHas: any = typeof b.lastMessage !== 'undefined';
-            //     return (bHas - aHas) || (aHas === true && Number(a.lastMessage.time) > Number(b.lastMessage.time) ? -1 : 1) || 0;
-            // });
+            notPinned.sort(function(a,b) {
+                let aHas: any = typeof a.lastMessage !== 'undefined';
+                let bHas: any = typeof b.lastMessage !== 'undefined';
+                return (bHas - aHas) || (aHas === true && Number(a.lastMessage.time) > Number(b.lastMessage.time) ? -1 : 1) || 0;
+            });
+            notPinned = notPinned.splice(0 , 40)
 
             await Promise.all(Object.values(notPinned).map(async (notPinnedDialog) => {
                 try {
