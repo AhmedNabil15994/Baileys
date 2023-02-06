@@ -80,13 +80,13 @@ export default class Chats extends Helper {
     async myChats(req, res) {
         try {
             let lastChats = [];
-            let messages = await this.WLredis.getData(this.session_id,'messages');
-            await messages.sort(function(a,b): any {
+            let all_messages = await this.WLredis.getData(this.session_id,'messages');
+            await all_messages.sort(function(a,b): any {
                 return Number(b.time) > Number(a.time) ? -1 : 1
             });
-            messages.reverse();
+            all_messages.reverse();
 
-            await Promise.all(Object.values(messages).map(async (element) => {
+            await Promise.all(Object.values(all_messages).map(async (element) => {
                 if(lastChats.length < 30 && !lastChats.includes(element.remoteJid) ){
                     lastChats.push(element.remoteJid)
                 }
