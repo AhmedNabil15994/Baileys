@@ -87,7 +87,7 @@ export default class Chats extends Helper {
             all_messages.reverse();
 
             await Promise.all(Object.values(all_messages).map(async (element:any) => {
-                if(lastChats.length < 30 && !lastChats.includes(element.remoteJid) ){
+                if(lastChats.length < 30 && element.hasOwnProperty('remoteJid') && !lastChats.includes(element.remoteJid) ){
                     lastChats.push(element.remoteJid)
                 }
             }));
