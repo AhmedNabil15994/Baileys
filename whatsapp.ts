@@ -64,21 +64,12 @@ const deleteSession = (sessionId, clearInstance = false) => {
 const createSession = async (sessionId, res = null) => {
 	try {
 		const sessionFile = 'md_' + sessionId
-
 		const logger = pino({ level: 'error' });
 		// Save every 10s
 		const { state, saveCreds } = await useMultiFileAuthState(sessionsDir(sessionFile))
-
 		// Fetch latest version of WA Web
 		const { version } = await fetchLatestBaileysVersion()
-		let browser;
-		if ((process.env.BROWSER == 'myWhats')) {
-			// browser = Browsers.myWhats('safari');
-			browser = Browsers.appropriate('safari');
-		} else {
-			browser = Browsers.appropriate('safari');
-		}
-
+	
 		const sock = makeWASocket({
 			version,
 			logger,
@@ -115,7 +106,8 @@ const createSession = async (sessionId, res = null) => {
 					const { connection, lastDisconnect } = update;
 					try {
 						if (connection === 'close') {
-							if ((lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut) {
+							const reason = (lastDisconnect?.error as Boom)?.output?.statusCode ;
+							if (reason === 515 || reason === 440 || reason === 408 || reason === 428) {
 								createSession(sessionId, res);
 							} else {
 								await Webhook.appLogOut(sessionId);
