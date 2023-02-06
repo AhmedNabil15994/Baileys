@@ -136,7 +136,7 @@ export default class Chats extends Helper {
 
             await Promise.all(Object.values(pinned).map(async (pinnedDialog) => {
                 try {
-                    pinnedDialog.messages =  await this.WLredis.getLastMessageInChat(this.session_id,pinnedDialog.id,2);
+                    pinnedDialog.lastMessage =  await this.WLredis.getLastMessageInChat(this.session_id,pinnedDialog.id,2);
                 } catch (e) {
                     (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', pinnedDialog.id) : '';
                 }
@@ -168,7 +168,7 @@ export default class Chats extends Helper {
 
             await Promise.all(Object.values(notPinned).map(async (notPinnedDialog) => {
                 try {
-                    notPinnedDialog.messages =  await this.WLredis.getLastMessageInChat(this.session_id,notPinnedDialog.id,2);
+                    notPinnedDialog.lastMessage =  await this.WLredis.getLastMessageInChat(this.session_id,notPinnedDialog.id,2);
                 } catch (e) {
                     (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', notPinnedDialog.id) : '';
                 }
