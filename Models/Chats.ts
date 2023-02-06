@@ -132,9 +132,7 @@ export default class Chats extends Helper {
                         if(Number(dialog.pinned) > 0){
                             pinned.push(dataObj)
                         }else{
-                            if (Array.isArray(messages) && messages.length) {
-                                notPinned.push(dataObj)                                
-                            }
+                            notPinned.push(dataObj)
                         }
                     }
                 }));
@@ -167,6 +165,13 @@ export default class Chats extends Helper {
                     (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', pinnedDialog.id) : '';
                 }
             }));  
+
+
+            // notPinned.sort(function(a,b) {
+            //     let aHas: any = typeof a.lastMessage !== 'undefined';
+            //     let bHas: any = typeof b.lastMessage !== 'undefined';
+            //     return (bHas - aHas) || (aHas === true && Number(a.lastMessage.time) > Number(b.lastMessage.time) ? -1 : 1) || 0;
+            // });
 
             await Promise.all(Object.values(notPinned).map(async (notPinnedDialog) => {
                 try {
