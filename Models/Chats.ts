@@ -87,13 +87,6 @@ export default class Chats extends Helper {
             let contacts = [];
             if(dialogs.length){
                 await Promise.all(Object.values(dialogs).map(async (dialog) => {
-                    try {
-                        messages =  await this.WLredis.getLastMessageInChat(this.session_id,dialog.id,2);
-                        // image = await getSession(this.session_id).profilePictureUrl(dialog.id)
-                    } catch (e) {
-                        (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', dialog.id) : '';
-                    }
-
                     let dataObj = {
                         'id': dialog.id,
                         'unreadCount': dialog.unreadCount,
@@ -141,6 +134,14 @@ export default class Chats extends Helper {
                 }
             }));    
 
+            await Promise.all(Object.values(pinned).map(async (pinnedDialog) => {
+                try {
+                    pinnedDialog.messages =  await this.WLredis.getLastMessageInChat(this.session_id,pinnedDialog.id,2);
+                } catch (e) {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', pinnedDialog.id) : '';
+                }
+            }));  
+
 
             notPinned.sort(function(a,b) {
                 let aHas: any = typeof a.lastMessage !== 'undefined';
@@ -163,7 +164,16 @@ export default class Chats extends Helper {
                 } catch (e) {
                     (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', notPinnedDialog.id) : '';
                 }
-            }));    
+            }));   
+
+            await Promise.all(Object.values(notPinned).map(async (notPinnedDialog) => {
+                try {
+                    notPinnedDialog.messages =  await this.WLredis.getLastMessageInChat(this.session_id,notPinnedDialog.id,2);
+                } catch (e) {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('fetching last message error', notPinnedDialog.id) : '';
+                }
+            }));   
+
 
             this.response(res, 200, true, 'Dialogs Found !!!', {
                 pinned: pinned,
