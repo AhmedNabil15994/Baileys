@@ -132,7 +132,9 @@ export default class Chats extends Helper {
                         if(Number(dialog.pinned) > 0){
                             pinned.push(dataObj)
                         }else{
-                            notPinned.push(dataObj)
+                            if(lastChats.includes(dialog.id)){
+                                notPinned.push(dataObj)
+                            }
                         }
                     }
                 }));
@@ -172,7 +174,7 @@ export default class Chats extends Helper {
                 let bHas: any = typeof b.lastMessage !== 'undefined';
                 return (bHas - aHas) || (aHas === true && Number(a.lastMessage.time) > Number(b.lastMessage.time) ? -1 : 1) || 0;
             });
-            notPinned = notPinned.splice(0 , 40)
+            // notPinned = notPinned.splice(0 , 40)
 
             await Promise.all(Object.values(notPinned).map(async (notPinnedDialog) => {
                 try {
