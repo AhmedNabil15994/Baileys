@@ -107,7 +107,7 @@ const createSession = async (sessionId, res = null) => {
 					try {
 						if (connection === 'close') {
 							const reason = (lastDisconnect?.error as Boom)?.output?.statusCode ;
-							if (reason === 515 || reason === 440 /*|| reason === 408 || reason === 428*/) {
+							if (reason === 515 /*|| reason === 440 || reason === 408 || reason === 428*/) {
 								createSession(sessionId, res);
 							} else {
 								await Webhook.appLogOut(sessionId);
