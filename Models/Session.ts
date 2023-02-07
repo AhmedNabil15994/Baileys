@@ -38,8 +38,8 @@ export default class Session extends Helper {
     }
 
     clearInstance(req, res) {
-        this.WLRedis.deleteSession(req.body.id);
         (getSession(req.body.id)) ? getSession(req.body.id).logout() : "";
+        this.WLRedis.deleteSession(req.body.id);
         deleteSession(req.body.id, true);
         createSession(req.body.id, res)
         this.response(res, 200, true, 'The session has been successfully deleted.');
