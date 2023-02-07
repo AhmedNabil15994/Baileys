@@ -246,7 +246,9 @@ const createSession = async (sessionId, res = null) => {
 							if (messageObj) {
 								await Webhook.MessageUpsert(sessionId, messageObj);
 								const dialogObj = await Redis.getOne(sessionId, msg.key.remoteJid,'chats');
-								console.log(dialogObj)
+								if(!dialogObj.hasOwnProperty('id')){
+									console.log(dialogObj)
+								}
 								// if(typeof dialogObj === 'undefined'){
 								// 	await Redis.setOne(sessionId,{
 								// 		id: msg.key.remoteJid,
