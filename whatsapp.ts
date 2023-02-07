@@ -246,18 +246,19 @@ const createSession = async (sessionId, res = null) => {
 							if (messageObj) {
 								await Webhook.MessageUpsert(sessionId, messageObj);
 								const dialogObj = await Redis.getOne(sessionId, msg.key.remoteJid,'chats');
-								if(typeof dialogObj === 'undefined'){
-									await Redis.setOne(sessionId,{
-										id: msg.key.remoteJid,
-										unreadCount: 1,
-										readOnly: false,
-									  	conversationTimestamp: new Date().getTime(),
-									  	last_time: new Date().getTime(),
-										notSpam: true,
-										archived: false,
-										pinned: false,
-									},'chats')
-								}
+								console.log(dialogObj)
+								// if(typeof dialogObj === 'undefined'){
+								// 	await Redis.setOne(sessionId,{
+								// 		id: msg.key.remoteJid,
+								// 		unreadCount: 1,
+								// 		readOnly: false,
+								// 	  	conversationTimestamp: new Date().getTime(),
+								// 	  	last_time: new Date().getTime(),
+								// 		notSpam: true,
+								// 		archived: false,
+								// 		pinned: false,
+								// 	},'chats')
+								// }
 							}
 						}
 					} catch (e) {
