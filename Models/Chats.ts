@@ -28,7 +28,7 @@ export default class Chats extends Helper {
     async fetchDialogs(req, res) {
         try {
             let dialogs: WLConversationInterface[] = await this.WLredis.getData(this.session_id,'chats');
-            let dialogsArr: WLConversationInterface[] = []
+            let dialogsArr: any[] = []
             let images = [];
             let image = '';
             if(dialogs.length){
