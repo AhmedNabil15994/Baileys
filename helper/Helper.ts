@@ -688,22 +688,22 @@ export default class Helper {
             }
         }else if (messageType == 'templateMessage' || (messageType == 'viewOnceMessage' && msgObj.message.viewOnceMessage.message && msgObj.message.viewOnceMessage.message.templateMessage)) {
             let msgData = msgObj.message.viewOnceMessage ? msgObj.message.viewOnceMessage.message.templateMessage : msgObj.message.templateMessage;
-            dataObj.body = msgData.hydratedTemplate && msgData.hydratedTemplate.hydratedContentText
-                ? msgData.hydratedTemplate.hydratedContentText
-                : '';
+            dataObj.body = msgData.hydratedFourRowTemplate && msgData.hydratedFourRowTemplate.hydratedContentText
+                ? msgData.hydratedFourRowTemplate.hydratedContentText
+                : msgData.hydratedTemplate.hydratedContentText;
             dataObj.metadata['hasPreview'] = 0
             dataObj.metadata['content'] =  dataObj.body;
-            dataObj.metadata['footer'] =  msgData.hydratedTemplate && msgData.hydratedTemplate.hydratedFooterText
-                ? msgData.hydratedTemplate.hydratedFooterText
-                : '';
-            dataObj.metadata['buttons'] = this.formatTemplateButtonsResponse( msgData.hydratedTemplate &&
-                msgData.hydratedTemplate.hydratedButtons
-                ? msgData.hydratedTemplate.hydratedButtons
-                : []);
+            dataObj.metadata['footer'] =  msgData.hydratedFourRowTemplate && msgData.hydratedFourRowTemplate.hydratedFooterText
+                ? msgData.hydratedFourRowTemplate.hydratedFooterText
+                : msgData.hydratedTemplate.hydratedFooterText;
+            dataObj.metadata['buttons'] = this.formatTemplateButtonsResponse( msgData.hydratedFourRowTemplate &&
+                msgData.hydratedFourRowTemplate.hydratedButtons
+                ? msgData.hydratedFourRowTemplate.hydratedButtons
+                : msgData.hydratedTemplate.hydratedButtons);
 
 
-            if (msgData.hydratedTemplate && msgData.hydratedTemplate.imageMessage) {
-                const extension = mime.extension(msgData.hydratedTemplate.imageMessage.mimetype)
+            if (msgData.hydratedFourRowTemplate && msgData.hydratedFourRowTemplate.imageMessage || msgData.hydratedTemplate && msgData.hydratedTemplate.imageMessage) {
+                const extension = mime.extension(msgData.hydratedFourRowTemplate ? msgData.hydratedFourRowTemplate.imageMessage.mimetype : msgData.hydratedTemplate.imageMessage.mimetype)
                 const path = process.env.UPLOAD_PATH + '/messages/' + newSessionId + '/' + msgObj.key.id + '.' + extension
                
                 await this.downloadMessageFile(msgObj,path,sock);
@@ -712,10 +712,10 @@ export default class Helper {
                 dataObj.metadata['image'] = process.env.IMAGE_URL + '/messages/' + newSessionId + '/' + msgObj.key.id + '.' + extension
             }
 
-            if (dataObj.metadata['hasPreview'] == 0 && msgData.hydratedTemplate && msgData.hydratedTemplate.hydratedContentText.indexOf(' \r\n \r\n ') > 0) {
+            if (dataObj.metadata['hasPreview'] == 0 && msgData.hydratedFourRowTemplate && msgData.hydratedFourRowTemplate.hydratedContentText.indexOf(' \r\n \r\n ') > 0) {
                 const btnData =
-                    msgData.hydratedTemplate && msgData.hydratedTemplate.hydratedContentText
-                        ? msgData.hydratedTemplate.hydratedContentText.split(' \r\n \r\n ')
+                    msgData.hydratedFourRowTemplate && msgData.hydratedFourRowTemplate.hydratedContentText
+                        ? msgData.hydratedFourRowTemplate.hydratedContentText.split(' \r\n \r\n ')
                         : []
                 dataObj.metadata['title'] = btnData[0]
                 dataObj.metadata['content'] = btnData[1]
