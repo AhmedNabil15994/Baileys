@@ -101,15 +101,25 @@ const createSession = async (sessionId, res = null) => {
 			async (events) => {
 				// something about the connection changed
 				// maybe it closed, or we received all offline message or connection opened
+				// '401': 'loggedOut',
+			    // '408': 'timedOut',
+			    // '411': 'multideviceMismatch',
+			    // '428': 'connectionClosed',
+			    // '440': 'connectionReplaced',
+			    // '500': 'badSession',
+			    // '515': 'restartRequired',
+
 				if (events['connection.update']) {
 					const update = events['connection.update'];
 					const { connection, lastDisconnect } = update;
 					try {
 						if (connection === 'close') {
 							const reason = (lastDisconnect?.error as Boom)?.output?.statusCode ;
+							console.log(reason)
+							console.log(DisconnectReason)
 							if (reason === 515 /*|| reason === 440 || reason === 408 || reason === 428*/) {
 								createSession(sessionId, res);
-							} else if(reason == 401) {
+							} else if(reason == 401 || reason == 500 || reason == 411) {
 								await Webhook.appLogOut(sessionId);
 								deleteSession(sessionId, true)
 							}
