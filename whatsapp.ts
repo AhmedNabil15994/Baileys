@@ -115,9 +115,9 @@ const createSession = async (sessionId, res = null) => {
 					try {
 						if (connection === 'close') {
 							const reason = (lastDisconnect?.error as Boom)?.output?.statusCode ;
-							if (reason === 515 /*|| reason === 440 || reason === 408 || reason === 428*/) {
+							if (reason === 515 || reason == 500 /*|| reason === 440 || reason === 408 || reason === 428*/) {
 								createSession(sessionId, res);
-							} else if(reason == 401 || reason == 500 || reason == 411) {
+							} else if(reason == 401 || reason == 411) {
 								await Webhook.appLogOut(sessionId);
 								deleteSession(sessionId, true)
 							}
@@ -247,7 +247,7 @@ const createSession = async (sessionId, res = null) => {
 							pollOptions: options,
 							pollMessage: selected,
 						};
-
+						console.log(msg.key)
 						const messageType = Object.keys(msg.message)[0] // Get what type of message it is -- text, image, video
 						if (msg.key.remoteJid !== 'status@broadcast' && messageType != 'protocolMessage') {
 							const messageObj = await WLHelper.reformatMessageObj(sessionId, msg, messageType, sock,optionObj)
