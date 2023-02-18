@@ -115,13 +115,24 @@ const createSession = async (sessionId, res = null) => {
 					try {
 						if (connection === 'close') {
 							const reason = (lastDisconnect?.error as Boom)?.output?.statusCode ;
-							if (reason === 515 || reason === 408  /*|| reason === 440 || reason == 500 */) {
-								createSession(sessionId, res);
-							} else if(reason == 401 || reason == 411 || reason === 428) {
+							if(reason == 401){
 								await Webhook.appLogOut(sessionId);
 								deleteSession(sessionId, true)
+							}else{
+								if ((lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut) {
+									createSession(sessionId, res);
+								}
 							}
 						}
+						// if (connection === 'close') {
+						// 	const reason = (lastDisconnect?.error as Boom)?.output?.statusCode ;
+						// 	if (reason === 515 || reason === 408  /*|| reason === 440 || reason == 500 */) {
+						// 		createSession(sessionId, res);
+						// 	} else if(reason == 401 || reason == 411 || reason === 428) {
+						// 		await Webhook.appLogOut(sessionId);
+						// 		deleteSession(sessionId, true)
+						// 	}
+						// }
 					} catch (e) {
 						(process.env.DEBUG_MODE == 'true') ? console.log('update data : ', update) : '';
 						(process.env.DEBUG_MODE == 'true') ? console.log('connection.update error', e) : '';
