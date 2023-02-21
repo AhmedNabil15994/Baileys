@@ -116,10 +116,43 @@ export default class Message extends Helper {
                 }
 
                 // For Template Messages Or Preview Messages
-                // if(type == 14){
-                //     const result = await this.session.relayMessage(this.target, messageData.message, {})
-                //     this.response(res, 200, true, 'The message has been successfully sent.', result)
-                // }else{
+                if(type == 14){
+                    // const result = await this.session.relayMessage(this.target, {"sendPaymentMessage" : {
+                    //     noteMessage : {extendedTextMessage : {text: 'hello'}},
+                    //     requestMessageKey: {
+                    //         remoteJid: '201009383326@s.whatsapp.net',
+                    //         fromMe: false,
+                    //         id: '02730ECD465DA35775D3892D1EDC5309',
+                    //         participant: undefined
+                    //     }
+                    // }}, {})
+                    // 
+                    // 
+                    // const result = await this.session.relayMessage(this.target, {
+                    //     paymentInviteMessage:{
+                    //         expiryTimestamp: new Date().getTime() + 3600000,
+                    //         serviceType: 0,
+                    //     }
+                    // }, {})
+                    // 
+                    // const result = await this.session.relayMessage(this.target, {
+                    //     interactiveMessage:{
+                    //         header: {
+                    //             hasMediaAttachment: 0,
+                    //             title: 'header title',
+                    //             subtitle: 'header subtitle',
+                    //         },
+                    //         body: "Hello Body",
+                    //         footer: "Hello Footer",
+                    //         collectionMessage:{
+                    //             bizJid: '201558651994@s.whatsapp.net'
+                    //         }
+                    //     }
+                    // }, {});
+                    const result = await this.session.relayMessage(this.target, messageData.message, {})
+                    return this.response(res, 200, true, 'The message has been successfully sent.', result)
+                }
+                // else{
                 //     const result = await this.session.sendMessage(this.target, messageData.message, optionObj)
                 //     this.response(res, 200, true, 'The message has been successfully sent.', result)
                 // }
@@ -287,15 +320,17 @@ export default class Message extends Helper {
         }
     }
 
-    async sendOneFromGroup(phone,input,res,loop){
-        try {
-            let checkWhatsApp = await this.onWhatsApp(this.session, this.formatPhone(phone));
-            if (checkWhatsApp.length == 0) {
-                (process.env.DEBUG_MODE == 'true') ? console.log('Chat Not Exist target : ' + this.formatPhone(phone)) : '';
-                return this.response(res, 200, false, 'Chat Not Exist ')
+    async sendOneFromGroup(phone,input,res,loop,checked){
+        if(!checked){
+            try {
+                let checkWhatsApp = await this.onWhatsApp(this.session, this.formatPhone(phone));
+                if (checkWhatsApp.length == 0) {
+                    (process.env.DEBUG_MODE == 'true') ? console.log('Chat Not Exist target : ' + this.formatPhone(phone)) : '';
+                    return this.response(res, 200, false, 'Chat Not Exist ')
+                }
+            } catch (error) {
+                (process.env.DEBUG_MODE == 'true') ? console.log('Error check onWhatsApp sendGroupMessage: ' + error + ' & Target : ' + this.formatPhone(phone)) : '';
             }
-        } catch (error) {
-            (process.env.DEBUG_MODE == 'true') ? console.log('Error check onWhatsApp sendGroupMessage: ' + error + ' & Target : ' + this.formatPhone(phone)) : '';
         }
 
         const type = input.messageType
@@ -390,9 +425,10 @@ export default class Message extends Helper {
         let phones = this.isString(req.body.phones) ? JSON.parse(req.body.phones) : req.body.phones
         let intervalSeconds = req.body.interval  ? req.body.interval * 1000 : 3000;    
         let i = 0
+        let checked = req.body.checked  ? 1 : 0;
   
         let interval = setInterval(async() =>{
-            await this.sendOneFromGroup(phones[i],req.body,res,i);
+            await this.sendOneFromGroup(phones[i],req.body,res,i,checked);
             if (i++ >= phones.length - 1){
                 clearInterval(interval);
             }
